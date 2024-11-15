@@ -8,39 +8,6 @@ void tec_asciiFormatter::change_pattern(std::string && new_pattern) {
 	pattern = std::regex(new_pattern, std::regex::icase); 
 }
 
-/*
-bool tec_asciiFormatter::format_title(std::string &line) {
-	change_pattern("^.*TITLE\\s*=\\s*");
-	if(std::regex_search(line, pattern)) {
-		line = std::regex_replace(line, pattern, "TITLE=");
-		change_pattern("\"\\s*(?=.)|\\s*\"\\s*$");
-		std::cout << line << std::endl;
-		std::cout << std::regex_replace(line, pattern, "") << std::endl;
-
-		return true;
-	}
-
-	return false;
-}
-
-bool tec_asciiFormatter::format_variable_list(std::string &line, const char* delim) {
-	change_pattern("^.*VARIABLES\\s*=\\s*");
-	if(std::regex_search(line, pattern)) {
-		line = std::regex_replace(line, pattern, "VARIABLES=");
-		change_pattern("\\s+(?!\\w)");
-		line = std::regex_replace(line, pattern, "");
-		change_pattern(",\\s|\"\"|\",\"");
-		line = std::regex_replace(line, pattern, delim);
-		change_pattern("\"");
-		std::cout << std::regex_replace(line, pattern, "") << std::endl;
-		
-		return true;
-	}
-
-	return false;
-}
-*/
-
 bool tec_asciiFormatter::format_header(std::string &line, const char* delim, const char* separator) {
 
 	change_pattern("\\bTITLE\\b|\\bVARIABLES\\b|\\bFILETYPE\\b");
@@ -96,8 +63,8 @@ bool tec_asciiFormatter::format_subzoneHeader(std::string &line, const char* del
 
 int tec_asciiFormatter::format_auto(std::string &line, const char* delim, const char* separator) {
 	
-	change_pattern("^\\s+"); //always remove any white space at beginning of lines
-	line = std::regex_replace(line, pattern, ""); 
+	//change_pattern("^\\s+"); //always remove any white space at beginning of lines
+	//line = std::regex_replace(line, pattern, ""); 
 	
 	if(format_header(line, delim, separator)) {
 		return 1;
