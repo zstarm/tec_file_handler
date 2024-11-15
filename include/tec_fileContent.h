@@ -113,17 +113,20 @@ class tec_byteType : public tec_data {
 */
 
 class tec_variable {
+	/*
 	friend class tec_asciiReader;
 	friend class tec_asciiWriter;
 
 	friend class tec_szlReader;
 	friend class tec_szlWriter;
+	*/
 
+	friend class tec_asciiReader;
 	std::string name;
 	std::vector<tec_data*> zone_data;
 	public:
 		tec_variable();
-		//tec_variable(std::string vname);
+		tec_variable(std::string vname);
 		~tec_variable();
 
 		//void modify_name(std::string vname);
