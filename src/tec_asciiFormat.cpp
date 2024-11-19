@@ -72,7 +72,11 @@ int tec_asciiFormatter::format_auto(std::string &line, const char* delim, const 
 	else if(format_subzoneHeader(line, delim, separator)) {
 		return 2;
 	}
-	
-	return 0;
-
+	else {
+		change_pattern("\\t+"); //change any tabs to single spaces
+		line = std::regex_replace(line, pattern, " "); 
+		change_pattern("^\\s+|\\s(?=\\s+)"); //remove any double+ spaces
+		line = std::regex_replace(line, pattern, ""); 
+		return 0;
+	}
 }
