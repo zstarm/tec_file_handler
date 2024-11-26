@@ -53,3 +53,4 @@ build/*
 out/*
 .vs
 *.swp
+run_test
