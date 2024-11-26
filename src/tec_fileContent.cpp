@@ -34,7 +34,7 @@ tec_data::tec_data(tec_data& obj) : T(obj.T) {
 			}
 			break;
 		default:
-			throw tec_containerException("issue with copying tec_data object");
+			throw tec_containerError("issue with copying tec_data object");
 	}
 }
 
@@ -367,16 +367,16 @@ void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
 		case (char)dataTypeFlag::int32:
 			subzoneData[zone].resize<int32_t>(_size, (int32_t)0);
 			break;
-		case (char)dataTypeFlag::doublePrecision:
+		case (char)dataTypeFlag::int16:
 			subzoneData[zone].resize<int16_t>(_size, (int16_t)0);
 			break;
-		case (char)dataTypeFlag::doublePrecision:
+		case (char)dataTypeFlag::byte:
 			subzoneData[zone].resize<uint8_t>(_size, (uint8_t)0);
 			break;
 
 		default:
 			std::string msg = "could not resize zone for the variable: " + name;
-			throw tec_containerException(msg.c_str());
+			throw tec_containerError(msg.c_str());
 	}
 }
 
@@ -384,7 +384,7 @@ tec_data& tec_variable::operator[](int zoneIdx) {
 	if(zoneIdx < subzoneData.size()) {
 		return subzoneData[zoneIdx];
 	}
-	throw tec_containerException("zone index exceeds subzone vector limits");
+	throw tec_containerError("zone index exceeds subzone vector limits");
 }
 
 tec_zoneDetails::tec_zoneDetails() : zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point) {}

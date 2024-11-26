@@ -1,0 +1,10 @@
+#! /bin/zsh
+
+if [[ ! -d "build" ]]; then 
+	cmake -S . -B build
+fi
+
+cmake --build build
+g++ -o test testing.cpp -ltec_fileHandling -Lbuild/ -I include/. -std=c++14 
+
+./test dataset_for_testing.dat 2 > log.out

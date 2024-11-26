@@ -1,19 +1,19 @@
 #ifndef TEC_EXCEPT
 #define TEC_EXCEPT
 
-#include <exception>
+//#include <exception>
 
-struct tec_readerException : public std::exception {
+struct tec_asciiReaderError {
 	const char* error_msg;
-	tec_readerException();
-	tec_readerException(const char* msg);
+	tec_asciiReaderError();
+	tec_asciiReaderError(const char* msg);
 	const char* what() const noexcept;
 };
 
-struct tec_containerException : public std::exception {
+struct tec_containerError  {
 	const char* error_msg;
-	tec_readerException();
-	tec_readerException(const char* msg);
+	tec_containerError();
+	tec_containerError(const char* msg);
 	const char* what() const noexcept;
 };
 

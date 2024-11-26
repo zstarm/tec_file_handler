@@ -174,13 +174,13 @@ void tec_asciiReader::preprocess_data(std::string &line, tec_fileContent &dataCo
 		else {
 			//BLOCK formatting
 			//parse_blockFormatData(line, dataContainer);
-			throw tec_readerException("reader currently doesn't not support block formatted zone types");
+			throw tec_asciiReaderError("reader currently doesn't not support block formatted zone types");
 		}
 	}
 
 	else {
 		//FINITE ELEMENT DATASET
-		throw exit_on_error("reader currently doesn't not support finte element datasets");
+		throw tec_asciiReaderError("reader currently doesn't not support finte element datasets");
 	}
 
 	rowCount++;
@@ -199,7 +199,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 				//should only occur if the data type for zone was not specified
 				dataContainer.variables[v].subzoneData.resize(zoneCounter);
 			}
-			type = dataContainer.variables[v][zoneCounter-1].get_type(); //get data type of current variable
+			type = dataContainer.variables[v][zoneCounter-1].type(); //get data type of current variable
 			//extract single data entry in the file
 			pos = line.find(' ');
 			entry = line.substr(0, pos);
@@ -228,34 +228,34 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 						break;
 
 					default:
-						throw exit_on_error("datatype identifier unsupported and could not be handled");
+						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
 				}
 			}
 			if(zoneSize) {
 				//if size is known, insert data point
 				switch(type) {
 					case (char)dataTypeFlag::singlePrecision:
-						dataContainer.variables[v][zoneCounter-1].fget(rowCount) = std::stof(entry);
+						dataContainer.variables[v][zoneCounter-1].get_float(rowCount) = std::stof(entry);
 						break;
 					
 					case (char)dataTypeFlag::doublePrecision:
-						dataContainer.variables[v][zoneCounter-1].dget(rowCount) = std::stod(entry);
+						dataContainer.variables[v][zoneCounter-1].get_double(rowCount) = std::stod(entry);
 						break;
 
 					case (char)dataTypeFlag::int32:
-						dataContainer.variables[v][zoneCounter-1].ilget(rowCount) = std::stol(entry);
+						dataContainer.variables[v][zoneCounter-1].get_int32(rowCount) = std::stol(entry);
 						break;
 
 					case (char)dataTypeFlag::int16:
-						dataContainer.variables[v][zoneCounter-1].isget(rowCount) = (int16_t)std::stoi(entry);
+						dataContainer.variables[v][zoneCounter-1].get_int16(rowCount) = (int16_t)std::stoi(entry);
 						break;
 
 					case (char)dataTypeFlag::byte:
-						dataContainer.variables[v][zoneCounter-1].bget(rowCount) = (uint8_t)std::stoi(entry);
+						dataContainer.variables[v][zoneCounter-1].get_byte(rowCount) = (uint8_t)std::stoi(entry);
 						break;
 
 					default:
-						throw exit_on_error("datatype identifier unsupported and could not be handled");
+						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
 				}
 			}
 
@@ -283,7 +283,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 						break;
 
 					default:
-						throw exit_on_error("datatype identifier unsupported and could not be handled");
+						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
 				}
 			}
 		}
@@ -309,7 +309,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 				dataContainer.variables[nVars-1].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
 			}
 			if(zoneSize) {
-				dataContainer.variables[nVars-1][zoneCounter-1].fget(rowCount) = std::stof(entry);
+				dataContainer.variables[nVars-1][zoneCounter-1].get_float(rowCount) = std::stof(entry);
 			}
 			else {
 				dataContainer.variables[nVars-1][zoneCounter-1].push_back(std::stof(entry));
@@ -360,8 +360,8 @@ void tec_asciiReader::read_file(tec_fileContent &dataContainer) {
 
 	}
 
-	catch(exit_on_error const &e) {
-		std::cout << "ERROR!: " << e.what() << std::endl;
+	catch(tec_asciiReaderError const &e) {
+		std::cout << "ASCII READER ERROR!: " << e.what() << std::endl;
 	}
 
 }

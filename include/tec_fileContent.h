@@ -135,10 +135,10 @@ class tec_data {
 		//template <typename DT> DT& get(int&& idx);
 		//template <typename DT> DT& get(int idx);
 		float& get_float(int idx);
-		double& dget(int idx);
-		int32_t& ilget(int idx);
-		int16_t& isget(int idx);
-		uint8_t& bget(int idx);
+		double& get_double(int idx);
+		int32_t& get_int32(int idx);
+		int16_t& get_int16(int idx);
+		uint8_t& get_byte(int idx);
 		
 };
 
