@@ -61,10 +61,15 @@ bool tec_asciiFormatter::format_subzoneHeader(std::string &line, const char* del
 	return false;
 }
 
+bool tec_asciiFormatter::check_invalidLine(std::string &line) {
+	change_pattern("[a-df-zA-DF-Z]");
+	if(std::regex_search(line, pattern)) {
+		return true;
+	}
+	return false;
+}
+
 int tec_asciiFormatter::format_auto(std::string &line, const char* delim, const char* separator) {
-	
-	//change_pattern("^\\s+"); //always remove any white space at beginning of lines
-	//line = std::regex_replace(line, pattern, ""); 
 	
 	if(format_header(line, delim, separator)) {
 		return 1;
@@ -72,11 +77,13 @@ int tec_asciiFormatter::format_auto(std::string &line, const char* delim, const 
 	else if(format_subzoneHeader(line, delim, separator)) {
 		return 2;
 	}
-	else {
-		change_pattern("\\t+"); //change any tabs to single spaces
-		line = std::regex_replace(line, pattern, " "); 
-		change_pattern("^\\s+|\\s(?=\\s+)"); //remove any double+ spaces
-		line = std::regex_replace(line, pattern, ""); 
-		return 0;
+	else if(check_invalidLine(line)) {
+		return -1;
 	}
+
+	change_pattern("\\t+"); //change any tabs to single spaces
+	line = std::regex_replace(line, pattern, " "); 
+	change_pattern("^\\s+|\\s(?=\\s+)|\\s$"); //remove any double+ spaces
+	line = std::regex_replace(line, pattern, ""); 
+	return 0;
 }

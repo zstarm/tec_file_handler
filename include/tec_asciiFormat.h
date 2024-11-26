@@ -18,6 +18,8 @@ class tec_asciiFormatter {
 		bool format_header(std::string &line, const char* delim = ",", const char* separator = "\n");
 		bool format_subzoneHeader(std::string &line, const char* delim = ",", const char* separator = "\n");
 
+		bool check_invalidLine(std::string &line);
+
 		int format_auto(std::string &line, const char* delim = ",", const char* separator = "\n");
 
 };
