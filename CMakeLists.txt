@@ -13,6 +13,7 @@ set(OUTTER_SOURCE_DIR "/Users/starman/Documents/Projects/tec_file_handler")
 add_library(tec_fileHandling "${OUTTER_SOURCE_DIR}/src/tec_asciiFileHandling.cpp")
 target_sources(tec_fileHandling PRIVATE "${OUTTER_SOURCE_DIR}/src/tec_asciiFormat.cpp" "${OUTTER_SOURCE_DIR}/src/tec_fileContent.cpp")
 
-target_include_directories(tec_fileHandling PUBLIC ${OUTTER_SOURCE_DIR}/include/)
+target_include_directories(tec_fileHandling PRIVATE ${OUTTER_SOURCE_DIR}/include/)
+target_compile_options(tec_fileHandling PUBLIC "-g")
 
 
