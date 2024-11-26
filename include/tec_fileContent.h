@@ -23,53 +23,51 @@
 #include <memory>
 //#include <filesystem>
 
+#include "tec_exceptions.h"
+
 //typedef std::variant<float, double, int32_t, int16_t, uint8_t> tecDataTypes;
 
 enum class fileTypeFlag : char {
-	full,
-	grid,
-	solution
+	full = '0',
+	grid = '1',
+	solution = '2'
 };
 
 enum class dataTypeFlag : char {
-	//unknown,
-	singlePrecision,
-	doublePrecision,
-	int32,
-	int16,
-	byte
+	singlePrecision = '0',
+	doublePrecision = '1',
+	int32 = '2',
+	int16 = '3',
+	byte = '4'
 };
 
-enum class sharedVarFlag : char {
-	nonshared,
-	shared
+enum class sharedVarFlag : bool {
+	nonshared = false,
+	shared = true
 };
 
-enum class passiveVarFlag : char {
-	nonpassive,
-	passive
+enum class passiveVarFlag : bool {
+	nonpassive = false,
+	passive = true
 };
 
 enum class formattingFlag : char {
-	point,
-	block
+	point = '0',
+	block = '1'
 };
 
 enum class zoneTypeFlag : char {
-	ordered,
-	FE
+	ordered = '0',
+	FE = '1'
 };
 
 class tec_zoneDetails {
 	int I, J, K;
-	std::vector<dataTypeFlag> DT;
 	formattingFlag dataPacking;
 	zoneTypeFlag zoneType;
 	std::string zoneTitle;
-	//std::vector<int> sharedVars;
 	int strandID;
 	double solutionTime;
-	std::vector<int> passiveVars;
 	public:
 		tec_zoneDetails();
 		~tec_zoneDetails();
@@ -88,7 +86,7 @@ class tec_zoneDetails {
 };
 
 class tec_data {
-	protected:
+	private:
 		//int size; 
 		dataTypeFlag T;
 		std::unique_ptr<std::vector<float>> float_content;
@@ -124,6 +122,8 @@ class tec_data {
 		void push_back(int16_t val);
 		void push_back(uint8_t val);
 
+		char type();
+
 		/*
 		void insert(int idx, float val);
 		void insert(int idx, double val);
@@ -134,7 +134,7 @@ class tec_data {
 
 		//template <typename DT> DT& get(int&& idx);
 		//template <typename DT> DT& get(int idx);
-		float& fget(int idx);
+		float& get_float(int idx);
 		double& dget(int idx);
 		int32_t& ilget(int idx);
 		int16_t& isget(int idx);

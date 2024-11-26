@@ -4,8 +4,7 @@ tec_fileContent::tec_fileContent() {}
 
 tec_fileContent::~tec_fileContent() {}
 
-tec_data::tec_data() {
-}
+tec_data::tec_data() : T(dataTypeFlag::singlePrecision) {}
 
 tec_data::tec_data(tec_data& obj) : T(obj.T) {
 	switch((char)T) {
@@ -34,8 +33,8 @@ tec_data::tec_data(tec_data& obj) : T(obj.T) {
 				byte_content = std::make_unique<std::vector<uint8_t>>(*obj.byte_content);
 			}
 			break;
-		//default:
-			//std::cout << "ERROR!: undefined behavior when allocating tec_data" << std::endl;
+		default:
+			throw tec_containerException("issue with copying tec_data object");
 	}
 }
 
@@ -91,7 +90,7 @@ void tec_data::allocate(int size) {
 			byte_content = std::make_unique<std::vector<uint8_t>>(size);
 			break;
 		default:
-			std::cout << "ERROR!: undefined behavior when allocating tec_data" << std::endl;
+			std::cout << "ERROR!: unrecognized data type for tec_data, no memory allcoation made" << std::endl;
 	}
 }
 
@@ -114,7 +113,7 @@ void tec_data::allocate(int size, DT val) {
 			byte_content = std::make_unique<std::vector<uint8_t>>(size, val);
 			break;
 		default:
-			std::cout << "ERROR!: undefined behavior when allocating tec_data" << std::endl;
+			std::cout << "ERROR!: unrecognized data type for tec_data, no memory allcoation made" << std::endl;
 	}
 }
 	
@@ -153,7 +152,7 @@ void tec_data::resize(int new_size, DT val) {
 			}
 			break;
 		default:
-			std::cout << "ERROR!: undefined behavior when resizing tec_data" << std::endl;
+			std::cout << "ERROR!: unrecognized data type for tec_data, defaulting to \"float\" data type" << std::endl;
 	}
 
 	uint8_t tmpb;
@@ -177,6 +176,7 @@ void tec_data::resize(int new_size, DT val) {
 	}
 	allocate<DT>(new_size, val); 
 }
+
 void tec_data::resize(int new_size) {
 	switch((char)T) {
 		case (char)dataTypeFlag::singlePrecision:
@@ -217,7 +217,7 @@ void tec_data::resize(int new_size) {
 			}
 			break;
 		default:
-			std::cout << "ERROR!: undefined behavior when resizing tec_data" << std::endl;
+			std::cout << "ERROR!: unrecognized data type for tec_data, no resizing was performed" << std::endl;
 	}
 }
 
@@ -227,7 +227,7 @@ void tec_data::push_back(float val) {
 	}
 	else {
 		if(T != dataTypeFlag::singlePrecision) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data" << std::endl;
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
 		}
 		else {
 			allocate<float>(1, val);
@@ -241,7 +241,7 @@ void tec_data::push_back(double val) {
 	}
 	else {
 		if(T != dataTypeFlag::doublePrecision) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data" << std::endl;
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
 		}
 		else {
 			allocate<double>(1, val);
@@ -255,7 +255,7 @@ void tec_data::push_back(int32_t val) {
 	}
 	else {
 		if(T != dataTypeFlag::int32) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data" << std::endl;
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
 		}
 		else {
 			allocate<int32_t>(1, val);
@@ -269,7 +269,7 @@ void tec_data::push_back(int16_t val) {
 	}
 	else {
 		if(T != dataTypeFlag::int16) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data" << std::endl;
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
 		}
 		else {
 			allocate<int16_t>(1, val);
@@ -283,7 +283,7 @@ void tec_data::push_back(uint8_t val) {
 	}
 	else {
 		if(T != dataTypeFlag::byte) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data" << std::endl;
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
 		}
 		else {
 			allocate<uint8_t>(1, val);
@@ -291,152 +291,50 @@ void tec_data::push_back(uint8_t val) {
 	}
 }
 
-float& tec_data::fget(int idx) {
+char tec_data::type() {
+	return (char)T;
+}
+
+float& tec_data::get_float(int idx) {
 	if(float_content) {
 		return (*float_content)[idx];
 	}
 
-	throw std::logic_error("ERROR!: Either incorrect function called or not data is allocated");
+	throw tec_containerError("no float data is allocated");
 }
 
-double& tec_data::dget(int idx) {
+double& tec_data::get_double(int idx) {
 	if(double_content) {
 		return (*double_content)[idx];
 	}
 
-	throw std::logic_error("ERROR!: Either incorrect function called or not data is allocated");
+	throw tec_containerError("no double data is allocated");
 }
 
-int32_t& tec_data::ilget(int idx) {
+int32_t& tec_data::get_int32(int idx) {
 	if(float_content) {
 		return (*int32_content)[idx];
 	}
 
-	throw std::logic_error("ERROR!: Either incorrect function called or not data is allocated");
+	throw tec_containerError("no int32_t data is allocated");
 }
 
-int16_t& tec_data::isget(int idx) {
+int16_t& tec_data::get_int16(int idx) {
 	if(int16_content) {
 		return (*int16_content)[idx];
 	}
 
-	throw std::logic_error("ERROR!: Either incorrect function called or not data is allocated");
+	throw tec_containerError("no int16_t data is allocated");
 }
 
-uint8_t& tec_data::bget(int idx) {
+uint8_t& tec_data::get_byte(int idx) {
 	if(byte_content) {
 		return (*byte_content)[idx];
 	}
 
-	throw std::logic_error("ERROR!: Either incorrect function called or not data is allocated");
+	throw tec_containerError("no byte data is allocated");
 }
 
-/*
-template <typename DT> DT& tec_data::get(int idx) {
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			{
-				float tmp;	
-				if(float_content && (typeid(tmp) == typeid(DT))) {
-					return (&DT)(*float_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::doublePrecision:
-			{
-				double tmp;	
-				if(double_content && (typeid(tmp) == typeid(DT))) {
-					return (&DT)(*double_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::int32:
-			{
-				int32_t tmp;	
-				if(int32_content && (typeid(tmp) == typeid(DT))) {
-					return (&DT)(*int32_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::int16:
-			{
-				int16_t tmp;	
-				if(int16_content && (typeid(tmp) == typeid(DT))) {
-					return (&DT)(*int16_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::byte:
-			{
-				uint8_t tmp;	
-				if(byte_content && (typeid(tmp) == typeid(DT))) {
-					return (&DT)(*byte_content)[idx];
-				}
-				break;
-			}
-		default:
-			std::cout << "ERROR!: undefined data type" << std::endl;
-	}
-	throw std::invalid_argument("Could not retrieve reference");
-}
-
-//explicit instantations that will be used
-template float& tec_data::get(int idx);
-template double& tec_data::get(int idx);
-template int32_t& tec_data::get(int idx);
-template int16_t& tec_data::get(int idx);
-template uint8_t& tec_data::get(int idx);
-
-template<typename DT>
-DT& tec_data::get(int&& idx) {
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			{
-				float tmp;	
-				if(float_content && (typeid(tmp) == typeid(DT))) {
-					return &(*float_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::doublePrecision:
-			{
-				double tmp;	
-				if(double_content && (typeid(tmp) == typeid(DT))) {
-					return &(*double_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::int32:
-			{
-				int32_t tmp;	
-				if(int32_content && (typeid(tmp) == typeid(DT))) {
-					return &(*int32_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::int16:
-			{
-				int16_t tmp;	
-				if(int16_content && (typeid(tmp) == typeid(DT))) {
-					return &(*int16_content)[idx];
-				}
-				break;
-			}
-		case (char)dataTypeFlag::byte:
-			{
-				uint8_t tmp;	
-				if(byte_content && (typeid(tmp) == typeid(DT))) {
-					return &(*byte_content)[idx];
-				}
-				break;
-			}
-		default:
-			std::cout << "ERROR!: undefined data type" << std::endl;
-	}
-	throw std::invalid_argument("Could not retrieve reference");
-}
-
-*/
 tec_data::~tec_data() {}
 
 tec_variable::tec_variable() {}
@@ -455,27 +353,8 @@ tec_variable::~tec_variable() {}
 
 void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
 	if(zone >= subzoneData.size()) {
-		/*
-		switch((char)T) {
-			case (char)dataTypeFlage::singlePrecision:
-				zone_data.resize(_size, tec_data(_size, (float)0.0));
-				break;
-
-			case (char)dataTypeFlage::doublePrecision:
-				zone_data.resize(_size, tec_data(_size, (double)0.0));
-				break;
-
-			default:
-				std::cout << "ERROR!: could not resize the zone #" << zone+1;
-				std::cout << " for \"" << name << "\"" << std::endl;
-		}
-		*/
 		subzoneData.resize(_size);
 	}
-	
-	//else {
-		//delete zone_data[zone];
-	//}
 	
 	switch((char)T) {
 		case (char)dataTypeFlag::singlePrecision:
@@ -485,18 +364,30 @@ void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
 		case (char)dataTypeFlag::doublePrecision:
 			subzoneData[zone].resize<double>(_size, (double)0.0);
 			break;
+		case (char)dataTypeFlag::int32:
+			subzoneData[zone].resize<int32_t>(_size, (int32_t)0);
+			break;
+		case (char)dataTypeFlag::doublePrecision:
+			subzoneData[zone].resize<int16_t>(_size, (int16_t)0);
+			break;
+		case (char)dataTypeFlag::doublePrecision:
+			subzoneData[zone].resize<uint8_t>(_size, (uint8_t)0);
+			break;
 
 		default:
-			std::cout << "ERROR!: could not resize the zone #" << zone+1;
-			std::cout << " for \"" << name << "\"" << std::endl;
+			std::string msg = "could not resize zone for the variable: " + name;
+			throw tec_containerException(msg.c_str());
 	}
 }
 
 tec_data& tec_variable::operator[](int zoneIdx) {
-	return subzoneData[zoneIdx];
+	if(zoneIdx < subzoneData.size()) {
+		return subzoneData[zoneIdx];
+	}
+	throw tec_containerException("zone index exceeds subzone vector limits");
 }
 
-tec_zoneDetails::tec_zoneDetails() {}
+tec_zoneDetails::tec_zoneDetails() : zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point) {}
 
 tec_zoneDetails::~tec_zoneDetails() {}
 
@@ -515,7 +406,7 @@ void tec_zoneDetails::set_IJKSize(char IJK, int size) {
 			break;
 
 		default:
-			std::cout << "ERROR!: Unrecognized character used to set I, J, or K size" << std::endl;
+			std::cout << "ERROR!: unrecognized character identifer for setting IJKSize, use \"I\", \"J\", or \"K\" " << std::endl;
 	}
 }
 
@@ -527,7 +418,7 @@ void tec_zoneDetails::set_formatType(char formattingType) {
 		dataPacking = formattingFlag::block;
 	}
 	else {
-		std::cout << "ERROR!: Unrecognized formatting type... current formatting is set to ";
+		std::cout << "ERROR!: Unrecognized formatting type for set_formatType, current formatting is set to ";
 		if(dataPacking == formattingFlag::point) {
 			std::cout << "\"POINT\"" << std::endl;
 		}
@@ -546,7 +437,7 @@ void tec_zoneDetails::set_zoneType(char type) {
 		zoneType = zoneTypeFlag::FE;
 	}
 	else {
-		std::cout << "ERROR!: Unrecognized zone type... current zone type is set to ";
+		std::cout << "ERROR!: Unrecognized zone type for set_zoneType, current zone type is set to ";
 		if(zoneType == zoneTypeFlag::ordered) {
 			std::cout << "\"ORDERED\"" << std::endl;
 		}
@@ -569,14 +460,22 @@ zoneTypeFlag tec_zoneDetails::get_zoneType() {
 }
 
 int tec_zoneDetails::get_size() {
-	int s = I;
-	if(J) {
-		s *= J;
+	if(I || J || K) {
+		int s = 1;
+
+		if(I) {
+			s *= 1;
+		}
+		if(J) {
+			s *= J;
+		}
+		if(K) {
+			s *= K;
+		}
+
+		return 1;
 	}
-	if(K) {
-		s *= K;
-	}
-	return s;
+	return 0;
 }
 
 int tec_zoneDetails::get_Imax() {
