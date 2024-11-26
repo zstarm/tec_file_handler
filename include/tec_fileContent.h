@@ -14,18 +14,13 @@
 #ifndef TEC_FILE_CONTENT
 #define TEC_FILE_CONTENT
 
-//#include "TECIO.h"
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <type_traits>
 #include <memory>
-//#include <filesystem>
 
-#include "tec_exceptions.h"
-
-//typedef std::variant<float, double, int32_t, int16_t, uint8_t> tecDataTypes;
+#include "tec_error.h"
 
 enum class fileTypeFlag : char {
 	full = '0',
@@ -62,6 +57,9 @@ enum class zoneTypeFlag : char {
 };
 
 class tec_zoneDetails {
+	
+	friend class tec_fileContent;
+	
 	int I, J, K;
 	formattingFlag dataPacking;
 	zoneTypeFlag zoneType;
@@ -86,8 +84,10 @@ class tec_zoneDetails {
 };
 
 class tec_data {
+	
+	friend class tec_fileContent;
+	
 	private:
-		//int size; 
 		dataTypeFlag T;
 		std::unique_ptr<std::vector<float>> float_content;
 		std::unique_ptr<std::vector<double>> double_content;
@@ -110,10 +110,8 @@ class tec_data {
 		tec_data(int size, int16_t val);
 		tec_data(int size, uint8_t val);
 
-		//tec_data(int _size);
 		~tec_data();
 
-		//void resize(int new_size, val);
 		template <typename DT> void resize(int new_size, DT val);
 		void resize(int new_size);
 		void push_back(float val);
@@ -122,18 +120,8 @@ class tec_data {
 		void push_back(int16_t val);
 		void push_back(uint8_t val);
 
-		char type();
+		dataTypeFlag type();
 
-		/*
-		void insert(int idx, float val);
-		void insert(int idx, double val);
-		void insert(int idx, int32_t val);
-		void insert(int idx, float val);
-		void insert(int idx, float val);
-		*/
-
-		//template <typename DT> DT& get(int&& idx);
-		//template <typename DT> DT& get(int idx);
 		float& get_float(int idx);
 		double& get_double(int idx);
 		int32_t& get_int32(int idx);
@@ -143,17 +131,17 @@ class tec_data {
 };
 
 class tec_variable {
-	/*
+
+	friend class tec_fileContent;
+
 	friend class tec_asciiReader;
 	friend class tec_asciiWriter;
 
-	friend class tec_szlReader;
-	friend class tec_szlWriter;
-	*/
+	//friend class tec_szlReader;
+	//friend class tec_szlWriter;
 
-	friend class tec_asciiReader;
+
 	std::string name;
-	//std::vector<dataTypeFlag> subzoneDataTypes; 
 	
 	std::vector<tec_data> subzoneData;
 
@@ -164,7 +152,7 @@ class tec_variable {
 		tec_variable(tec_variable&& obj);
 		~tec_variable();
 
-		//void modify_name(std::string vname);
+		void modify_name(std::string vname);
 		void resize_zone(int zone, int _size, dataTypeFlag T = dataTypeFlag::singlePrecision);
 		tec_data& operator[](int idx); 
 };
@@ -174,8 +162,8 @@ class tec_fileContent {
 	friend class tec_asciiReader;
 	friend class tec_asciiWriter;
 
-	friend class tec_szlReader;
-	friend class tec_szlWriter;
+	//friend class tec_szlReader;
+	//friend class tec_szlWriter;
 
 	private:
 		std::string title;
@@ -186,9 +174,11 @@ class tec_fileContent {
 
 	public:
 		tec_fileContent();
-		//tec_fileContent(std::string _fname, uint8_t flags = 0);
-		
 		~tec_fileContent();
+		
+		void print_headerDetails();
+		//void print_zoneDetails(int zidx);
+		void print_fileDetails();
 		
 };
 

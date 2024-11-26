@@ -1,5 +1,6 @@
 title=	"throwing in rando &*^*( characters : 2.1s  4DPTV VORTEX DISTRIBUTION LINES   "    
-FILETYPE = 				GRID
+VARIABLES = x				 y   z 				
+FILETYPE = solution
 ZONE T="4DPTV yy_line" 
 I = 16
 ZONETYPE=Order, 			DATAPACKING=  POINT

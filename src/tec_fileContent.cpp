@@ -1,392 +1,8 @@
 #include "tec_fileContent.h"
 
-tec_fileContent::tec_fileContent() {}
-
-tec_fileContent::~tec_fileContent() {}
-
-tec_data::tec_data() : T(dataTypeFlag::singlePrecision) {}
-
-tec_data::tec_data(tec_data& obj) : T(obj.T) {
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			if(obj.float_content) {
-				float_content = std::make_unique<std::vector<float>>(*obj.float_content);
-			}
-			break;
-		case (char)dataTypeFlag::doublePrecision:
-			if(obj.double_content) {
-				double_content = std::make_unique<std::vector<double>>(*obj.double_content);
-			}
-			break;
-		case (char)dataTypeFlag::int32:
-			if(obj.int32_content) {
-				int32_content = std::make_unique<std::vector<int32_t>>(*obj.int32_content);
-			}
-			break;
-		case (char)dataTypeFlag::int16:
-			if(obj.int16_content) {
-				int16_content = std::make_unique<std::vector<int16_t>>(*obj.int16_content);
-			}
-			break;
-		case (char)dataTypeFlag::byte:
-			if(obj.byte_content) {
-				byte_content = std::make_unique<std::vector<uint8_t>>(*obj.byte_content);
-			}
-			break;
-		default:
-			throw tec_containerError("issue with copying tec_data object");
-	}
-}
-
-tec_data::tec_data(tec_data&& obj) : T(std::move(obj.T)) {
-	float_content = std::move(obj.float_content);
-	double_content = std::move(obj.double_content);
-	int32_content = std::move(obj.int32_content);
-	int16_content = std::move(obj.int16_content);
-	byte_content = std::move(obj.byte_content);
-}
-
-tec_data::tec_data(dataTypeFlag type) : T(type) {}
-
-tec_data::tec_data(dataTypeFlag type, int size) : T(type) {
-	allocate(size);
-}
-
-tec_data::tec_data(int size, float val) : T(dataTypeFlag::singlePrecision) {
-	allocate<float>(size, val);
-}
-
-tec_data::tec_data(int size, double val) : T(dataTypeFlag::doublePrecision) {
-	allocate<double>(size, val);
-}
-
-tec_data::tec_data(int size, int32_t val) : T(dataTypeFlag::int32) {
-	allocate<int32_t>(size, val);
-}
-
-tec_data::tec_data(int size, int16_t val) : T(dataTypeFlag::int16) {
-	allocate<int16_t>(size, val);
-}
-
-tec_data::tec_data(int size, uint8_t val) : T(dataTypeFlag::byte) {
-	allocate<uint8_t>(size, val);
-}
-
-void tec_data::allocate(int size) {
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			float_content = std::make_unique<std::vector<float>>(size);
-			break;
-		case (char)dataTypeFlag::doublePrecision:
-			double_content = std::make_unique<std::vector<double>>(size);
-			break;
-		case (char)dataTypeFlag::int32:
-			int32_content = std::make_unique<std::vector<int32_t>>(size);
-			break;
-		case (char)dataTypeFlag::int16:
-			int16_content = std::make_unique<std::vector<int16_t>>(size);
-			break;
-		case (char)dataTypeFlag::byte:
-			byte_content = std::make_unique<std::vector<uint8_t>>(size);
-			break;
-		default:
-			std::cout << "ERROR!: unrecognized data type for tec_data, no memory allcoation made" << std::endl;
-	}
-}
-
-template <typename DT>
-void tec_data::allocate(int size, DT val) {
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			float_content = std::make_unique<std::vector<float>>(size, val);
-			break;
-		case (char)dataTypeFlag::doublePrecision:
-			double_content = std::make_unique<std::vector<double>>(size, val);
-			break;
-		case (char)dataTypeFlag::int32:
-			int32_content = std::make_unique<std::vector<int32_t>>(size, val);
-			break;
-		case (char)dataTypeFlag::int16:
-			int16_content = std::make_unique<std::vector<int16_t>>(size, val);
-			break;
-		case (char)dataTypeFlag::byte:
-			byte_content = std::make_unique<std::vector<uint8_t>>(size, val);
-			break;
-		default:
-			std::cout << "ERROR!: unrecognized data type for tec_data, no memory allcoation made" << std::endl;
-	}
-}
-	
-template<typename DT> 
-void tec_data::resize(int new_size, DT val) {
-	
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			if(float_content) {
-				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
-				float_content.reset();
-			}
-			break;
-		case (char)dataTypeFlag::doublePrecision:
-			if(double_content) {
-				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
-				double_content.reset();
-			}
-			break;
-		case (char)dataTypeFlag::int32:
-			if(int32_content) {
-				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
-				int32_content.reset();
-			}
-			break;
-		case (char)dataTypeFlag::int16:
-			if(int16_content) {
-				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
-				int16_content.reset();
-			}
-			break;
-		case (char)dataTypeFlag::byte:
-			if(byte_content) {
-				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
-				byte_content.reset();
-			}
-			break;
-		default:
-			std::cout << "ERROR!: unrecognized data type for tec_data, defaulting to \"float\" data type" << std::endl;
-	}
-
-	uint8_t tmpb;
-	int16_t tmpis;
-	int32_t tmpil;
-	double tmpd;
-	if(std::is_same<DT, uint8_t>::value) {
-		T = dataTypeFlag::byte;
-	}
-	else if(std::is_same<DT, int16_t>::value) {
-		T = dataTypeFlag::int16;
-	}
-	else if(std::is_same<DT,int32_t>::value) {
-		T = dataTypeFlag::int32;
-	}
-	else if(std::is_same<DT,double>::value) {
-		T = dataTypeFlag::doublePrecision;
-	}
-	else {
-		T = dataTypeFlag::singlePrecision;
-	}
-	allocate<DT>(new_size, val); 
-}
-
-void tec_data::resize(int new_size) {
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			if(float_content) {
-				float_content->resize(new_size);
-			}
-			else {
-				allocate(new_size);
-			}
-			break;
-		case (char)dataTypeFlag::doublePrecision:
-			if(double_content) {
-				double_content->resize(new_size);
-			}
-			break;
-		case (char)dataTypeFlag::int32:
-			if(int32_content) {
-				int32_content->resize(new_size);
-			}
-			else {
-				allocate(new_size);
-			}
-			break;
-		case (char)dataTypeFlag::int16:
-			if(int16_content) {
-				int16_content->resize(new_size);
-			}
-			else {
-				allocate(new_size);
-			}
-			break;
-		case (char)dataTypeFlag::byte:
-			if(byte_content) {
-				byte_content->resize(new_size);
-			}
-			else {
-				allocate(new_size);
-			}
-			break;
-		default:
-			std::cout << "ERROR!: unrecognized data type for tec_data, no resizing was performed" << std::endl;
-	}
-}
-
-void tec_data::push_back(float val) {
-	if(float_content) {
-		float_content->push_back(val);
-	}
-	else {
-		if(T != dataTypeFlag::singlePrecision) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
-		}
-		else {
-			allocate<float>(1, val);
-		}
-	}
-}
-
-void tec_data::push_back(double val) {
-	if(double_content) {
-		double_content->push_back(val);
-	}
-	else {
-		if(T != dataTypeFlag::doublePrecision) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
-		}
-		else {
-			allocate<double>(1, val);
-		}
-	}
-}
-
-void tec_data::push_back(int32_t val) {
-	if(int32_content) {
-		int32_content->push_back(val);
-	}
-	else {
-		if(T != dataTypeFlag::int32) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
-		}
-		else {
-			allocate<int32_t>(1, val);
-		}
-	}
-}
-
-void tec_data::push_back(int16_t val) {
-	if(int16_content) {
-		int16_content->push_back(val);
-	}
-	else {
-		if(T != dataTypeFlag::int16) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
-		}
-		else {
-			allocate<int16_t>(1, val);
-		}
-	}
-}
-
-void tec_data::push_back(uint8_t val) {
-	if(byte_content) {
-		byte_content->push_back(val);
-	}
-	else {
-		if(T != dataTypeFlag::byte) {
-			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
-		}
-		else {
-			allocate<uint8_t>(1, val);
-		}
-	}
-}
-
-char tec_data::type() {
-	return (char)T;
-}
-
-float& tec_data::get_float(int idx) {
-	if(float_content) {
-		return (*float_content)[idx];
-	}
-
-	throw tec_containerError("no float data is allocated");
-}
-
-double& tec_data::get_double(int idx) {
-	if(double_content) {
-		return (*double_content)[idx];
-	}
-
-	throw tec_containerError("no double data is allocated");
-}
-
-int32_t& tec_data::get_int32(int idx) {
-	if(float_content) {
-		return (*int32_content)[idx];
-	}
-
-	throw tec_containerError("no int32_t data is allocated");
-}
-
-int16_t& tec_data::get_int16(int idx) {
-	if(int16_content) {
-		return (*int16_content)[idx];
-	}
-
-	throw tec_containerError("no int16_t data is allocated");
-}
-
-uint8_t& tec_data::get_byte(int idx) {
-	if(byte_content) {
-		return (*byte_content)[idx];
-	}
-
-	throw tec_containerError("no byte data is allocated");
-}
-
-tec_data::~tec_data() {}
-
-tec_variable::tec_variable() {}
-
-tec_variable::tec_variable(std::string vname) : name(vname) {}
-
-tec_variable::tec_variable(tec_variable & obj) : subzoneData(obj.subzoneData) {
-	name = obj.name;
-}
-
-tec_variable::tec_variable(tec_variable && obj) : subzoneData(std::move(obj.subzoneData)){
-	name = std::move(obj.name);
-}
-
-tec_variable::~tec_variable() {}
-
-void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
-	if(zone >= subzoneData.size()) {
-		subzoneData.resize(_size);
-	}
-	
-	switch((char)T) {
-		case (char)dataTypeFlag::singlePrecision:
-			subzoneData[zone].resize<float>(_size, (float)0.0);
-			break;
-
-		case (char)dataTypeFlag::doublePrecision:
-			subzoneData[zone].resize<double>(_size, (double)0.0);
-			break;
-		case (char)dataTypeFlag::int32:
-			subzoneData[zone].resize<int32_t>(_size, (int32_t)0);
-			break;
-		case (char)dataTypeFlag::int16:
-			subzoneData[zone].resize<int16_t>(_size, (int16_t)0);
-			break;
-		case (char)dataTypeFlag::byte:
-			subzoneData[zone].resize<uint8_t>(_size, (uint8_t)0);
-			break;
-
-		default:
-			std::string msg = "could not resize zone for the variable: " + name;
-			throw tec_containerError(msg.c_str());
-	}
-}
-
-tec_data& tec_variable::operator[](int zoneIdx) {
-	if(zoneIdx < subzoneData.size()) {
-		return subzoneData[zoneIdx];
-	}
-	throw tec_containerError("zone index exceeds subzone vector limits");
-}
-
+//-----------------------------------------------------------------------------------------------
+// TECPLOT ZONE DETAILS
+//-----------------------------------------------------------------------------------------------
 tec_zoneDetails::tec_zoneDetails() : zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point) {}
 
 tec_zoneDetails::~tec_zoneDetails() {}
@@ -490,3 +106,443 @@ int tec_zoneDetails::get_Kmax() {
 	return K;
 }
 
+
+//-----------------------------------------------------------------------------------------------
+// TECPLOT DATA
+//-----------------------------------------------------------------------------------------------
+tec_data::tec_data() : T(dataTypeFlag::singlePrecision) {}
+
+tec_data::tec_data(tec_data& obj) : T(obj.T) {
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			if(obj.float_content) {
+				float_content = std::make_unique<std::vector<float>>(*obj.float_content);
+			}
+			break;
+		case dataTypeFlag::doublePrecision:
+			if(obj.double_content) {
+				double_content = std::make_unique<std::vector<double>>(*obj.double_content);
+			}
+			break;
+		case dataTypeFlag::int32:
+			if(obj.int32_content) {
+				int32_content = std::make_unique<std::vector<int32_t>>(*obj.int32_content);
+			}
+			break;
+		case dataTypeFlag::int16:
+			if(obj.int16_content) {
+				int16_content = std::make_unique<std::vector<int16_t>>(*obj.int16_content);
+			}
+			break;
+		case dataTypeFlag::byte:
+			if(obj.byte_content) {
+				byte_content = std::make_unique<std::vector<uint8_t>>(*obj.byte_content);
+			}
+			break;
+		default:
+			throw tec_containerError("issue with copying tec_data object");
+	}
+}
+
+tec_data::tec_data(tec_data&& obj) : T(std::move(obj.T)) {
+	float_content = std::move(obj.float_content);
+	double_content = std::move(obj.double_content);
+	int32_content = std::move(obj.int32_content);
+	int16_content = std::move(obj.int16_content);
+	byte_content = std::move(obj.byte_content);
+}
+
+tec_data::tec_data(dataTypeFlag type) : T(type) {}
+
+tec_data::tec_data(dataTypeFlag type, int size) : T(type) {
+	allocate(size);
+}
+
+tec_data::tec_data(int size, float val) : T(dataTypeFlag::singlePrecision) {
+	allocate<float>(size, val);
+}
+
+tec_data::tec_data(int size, double val) : T(dataTypeFlag::doublePrecision) {
+	allocate<double>(size, val);
+}
+
+tec_data::tec_data(int size, int32_t val) : T(dataTypeFlag::int32) {
+	allocate<int32_t>(size, val);
+}
+
+tec_data::tec_data(int size, int16_t val) : T(dataTypeFlag::int16) {
+	allocate<int16_t>(size, val);
+}
+
+tec_data::tec_data(int size, uint8_t val) : T(dataTypeFlag::byte) {
+	allocate<uint8_t>(size, val);
+}
+
+tec_data::~tec_data() {}
+
+void tec_data::allocate(int size) {
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			float_content = std::make_unique<std::vector<float>>(size);
+			break;
+		case dataTypeFlag::doublePrecision:
+			double_content = std::make_unique<std::vector<double>>(size);
+			break;
+		case dataTypeFlag::int32:
+			int32_content = std::make_unique<std::vector<int32_t>>(size);
+			break;
+		case dataTypeFlag::int16:
+			int16_content = std::make_unique<std::vector<int16_t>>(size);
+			break;
+		case dataTypeFlag::byte:
+			byte_content = std::make_unique<std::vector<uint8_t>>(size);
+			break;
+		default:
+			std::cout << "ERROR!: unrecognized data type for tec_data, no memory allcoation made" << std::endl;
+	}
+}
+
+template <typename DT>
+void tec_data::allocate(int size, DT val) {
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			float_content = std::make_unique<std::vector<float>>(size, val);
+			break;
+		case dataTypeFlag::doublePrecision:
+			double_content = std::make_unique<std::vector<double>>(size, val);
+			break;
+		case dataTypeFlag::int32:
+			int32_content = std::make_unique<std::vector<int32_t>>(size, val);
+			break;
+		case dataTypeFlag::int16:
+			int16_content = std::make_unique<std::vector<int16_t>>(size, val);
+			break;
+		case dataTypeFlag::byte:
+			byte_content = std::make_unique<std::vector<uint8_t>>(size, val);
+			break;
+		default:
+			std::cout << "ERROR!: unrecognized data type for tec_data, no memory allcoation made" << std::endl;
+	}
+}
+	
+template<typename DT> 
+void tec_data::resize(int new_size, DT val) {
+	
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			if(float_content) {
+				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
+				float_content.reset();
+			}
+			break;
+		case dataTypeFlag::doublePrecision:
+			if(double_content) {
+				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
+				double_content.reset();
+			}
+			break;
+		case dataTypeFlag::int32:
+			if(int32_content) {
+				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
+				int32_content.reset();
+			}
+			break;
+		case dataTypeFlag::int16:
+			if(int16_content) {
+				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
+				int16_content.reset();
+			}
+			break;
+		case dataTypeFlag::byte:
+			if(byte_content) {
+				std::cout << "WARNING!: potentially deleting previous data/container" << std::endl;
+				byte_content.reset();
+			}
+			break;
+		default:
+			std::cout << "ERROR!: unrecognized data type for tec_data, defaulting to \"float\" data type" << std::endl;
+	}
+
+	uint8_t tmpb;
+	int16_t tmpis;
+	int32_t tmpil;
+	double tmpd;
+	if(std::is_same<DT, uint8_t>::value) {
+		T = dataTypeFlag::byte;
+	}
+	else if(std::is_same<DT, int16_t>::value) {
+		T = dataTypeFlag::int16;
+	}
+	else if(std::is_same<DT,int32_t>::value) {
+		T = dataTypeFlag::int32;
+	}
+	else if(std::is_same<DT,double>::value) {
+		T = dataTypeFlag::doublePrecision;
+	}
+	else {
+		T = dataTypeFlag::singlePrecision;
+	}
+	allocate<DT>(new_size, val); 
+}
+
+void tec_data::resize(int new_size) {
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			if(float_content) {
+				float_content->resize(new_size);
+			}
+			else {
+				allocate(new_size);
+			}
+			break;
+		case dataTypeFlag::doublePrecision:
+			if(double_content) {
+				double_content->resize(new_size);
+			}
+			break;
+		case dataTypeFlag::int32:
+			if(int32_content) {
+				int32_content->resize(new_size);
+			}
+			else {
+				allocate(new_size);
+			}
+			break;
+		case dataTypeFlag::int16:
+			if(int16_content) {
+				int16_content->resize(new_size);
+			}
+			else {
+				allocate(new_size);
+			}
+			break;
+		case dataTypeFlag::byte:
+			if(byte_content) {
+				byte_content->resize(new_size);
+			}
+			else {
+				allocate(new_size);
+			}
+			break;
+		default:
+			std::cout << "ERROR!: unrecognized data type for tec_data, no resizing was performed" << std::endl;
+	}
+}
+
+void tec_data::push_back(float val) {
+	if(float_content) {
+		float_content->push_back(val);
+	}
+	else {
+		if(T != dataTypeFlag::singlePrecision) {
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
+		}
+		else {
+			allocate<float>(1, val);
+		}
+	}
+}
+
+void tec_data::push_back(double val) {
+	if(double_content) {
+		double_content->push_back(val);
+	}
+	else {
+		if(T != dataTypeFlag::doublePrecision) {
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
+		}
+		else {
+			allocate<double>(1, val);
+		}
+	}
+}
+
+void tec_data::push_back(int32_t val) {
+	if(int32_content) {
+		int32_content->push_back(val);
+	}
+	else {
+		if(T != dataTypeFlag::int32) {
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
+		}
+		else {
+			allocate<int32_t>(1, val);
+		}
+	}
+}
+
+void tec_data::push_back(int16_t val) {
+	if(int16_content) {
+		int16_content->push_back(val);
+	}
+	else {
+		if(T != dataTypeFlag::int16) {
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
+		}
+		else {
+			allocate<int16_t>(1, val);
+		}
+	}
+}
+
+void tec_data::push_back(uint8_t val) {
+	if(byte_content) {
+		byte_content->push_back(val);
+	}
+	else {
+		if(T != dataTypeFlag::byte) {
+			std::cout << "ERROR!: tried to push_back incorrect type to tec_data, no data inserted" << std::endl;
+		}
+		else {
+			allocate<uint8_t>(1, val);
+		}
+	}
+}
+
+dataTypeFlag tec_data::type() {
+	return T;
+}
+
+float& tec_data::get_float(int idx) {
+	if(float_content) {
+		return (*float_content)[idx];
+	}
+
+	throw tec_containerError("no float data is allocated");
+}
+
+double& tec_data::get_double(int idx) {
+	if(double_content) {
+		return (*double_content)[idx];
+	}
+
+	throw tec_containerError("no double data is allocated");
+}
+
+int32_t& tec_data::get_int32(int idx) {
+	if(float_content) {
+		return (*int32_content)[idx];
+	}
+
+	throw tec_containerError("no int32_t data is allocated");
+}
+
+int16_t& tec_data::get_int16(int idx) {
+	if(int16_content) {
+		return (*int16_content)[idx];
+	}
+
+	throw tec_containerError("no int16_t data is allocated");
+}
+
+uint8_t& tec_data::get_byte(int idx) {
+	if(byte_content) {
+		return (*byte_content)[idx];
+	}
+
+	throw tec_containerError("no byte data is allocated");
+}
+
+
+//-----------------------------------------------------------------------------------------------
+// TECPLOT VARIABLE
+//-----------------------------------------------------------------------------------------------
+tec_variable::tec_variable() {}
+
+tec_variable::tec_variable(std::string vname) : name(vname) {}
+
+tec_variable::tec_variable(tec_variable & obj) : subzoneData(obj.subzoneData) {
+	name = obj.name;
+}
+
+tec_variable::tec_variable(tec_variable && obj) : subzoneData(std::move(obj.subzoneData)){
+	name = std::move(obj.name);
+}
+
+tec_variable::~tec_variable() {}
+
+void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
+	if(zone >= subzoneData.size()) {
+		subzoneData.resize(_size);
+	}
+	
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			subzoneData[zone].resize<float>(_size, (float)0.0);
+			break;
+
+		case dataTypeFlag::doublePrecision:
+			subzoneData[zone].resize<double>(_size, (double)0.0);
+			break;
+		case dataTypeFlag::int32:
+			subzoneData[zone].resize<int32_t>(_size, (int32_t)0);
+			break;
+		case dataTypeFlag::int16:
+			subzoneData[zone].resize<int16_t>(_size, (int16_t)0);
+			break;
+		case dataTypeFlag::byte:
+			subzoneData[zone].resize<uint8_t>(_size, (uint8_t)0);
+			break;
+
+		default:
+			std::string msg = "could not resize zone for the variable: " + name;
+			throw tec_containerError(msg.c_str());
+	}
+}
+
+void tec_variable::modify_name(std::string vname) {
+	name = vname;
+}
+
+tec_data& tec_variable::operator[](int zoneIdx) {
+	if(zoneIdx < subzoneData.size()) {
+		return subzoneData[zoneIdx];
+	}
+	throw tec_containerError("zone index exceeds subzone vector limits");
+}
+
+
+//-----------------------------------------------------------------------------------------------
+// TECPLOT FILE CONTENT
+//-----------------------------------------------------------------------------------------------
+tec_fileContent::tec_fileContent() : fType(fileTypeFlag::full) {}
+
+tec_fileContent::~tec_fileContent() {}
+
+void tec_fileContent::print_headerDetails() {
+	std::cout << "TECPLOT FILE DETAILS" << std::endl;
+
+	//title
+	std::cout << "TITLE: " << title << std::endl;
+
+	//file type
+	std::cout << "FILE TYPE: "; 
+	switch(fType) {
+		case fileTypeFlag::full:
+			std::cout << "FULL" << std::endl;
+			break;
+		case fileTypeFlag::grid:
+			std::cout << "GRID" << std::endl;
+			break;
+		case fileTypeFlag::solution:
+			std::cout << "SOLUTION" << std::endl;
+			break;
+	}
+
+	//variable list
+	std::cout << "VARIABLES: ";
+	for(int v = 0; v < variables.size(); v++) {
+		std::cout << variables[v].name;
+		v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+	}
+
+}
+
+void tec_fileContent::print_fileDetails() {
+	print_headerDetails();
+	/*
+	for(int z = 0; z < zoneDetails.size(); z++) {
+		print_zoneDetails(z);
+	}
+	*/
+}

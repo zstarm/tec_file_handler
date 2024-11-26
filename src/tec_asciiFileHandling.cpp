@@ -188,7 +188,7 @@ void tec_asciiReader::preprocess_data(std::string &line, tec_fileContent &dataCo
 
 void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  &dataContainer) {
 	int nVars = dataContainer.variables.size();
-	char type;
+	dataTypeFlag type;
 	std::string entry;
 	size_t pos;
 	if(nVars) {
@@ -207,23 +207,23 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 			if(!rowCount && zoneSize) {
 				//if a fresh subzone of known size, check datatype allocate needed space 
 				switch(type) {
-					case (char)dataTypeFlag::singlePrecision:
+					case dataTypeFlag::singlePrecision:
 						dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
 						break;
 					
-					case (char)dataTypeFlag::doublePrecision:
+					case dataTypeFlag::doublePrecision:
 						dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::doublePrecision);
 						break;
 
-					case (char)dataTypeFlag::int32:
+					case dataTypeFlag::int32:
 						dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int32);
 						break;
 
-					case (char)dataTypeFlag::int16:
+					case dataTypeFlag::int16:
 						dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int16);
 						break;
 
-					case (char)dataTypeFlag::byte:
+					case dataTypeFlag::byte:
 						dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::byte);
 						break;
 
@@ -234,23 +234,23 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 			if(zoneSize) {
 				//if size is known, insert data point
 				switch(type) {
-					case (char)dataTypeFlag::singlePrecision:
+					case dataTypeFlag::singlePrecision:
 						dataContainer.variables[v][zoneCounter-1].get_float(rowCount) = std::stof(entry);
 						break;
 					
-					case (char)dataTypeFlag::doublePrecision:
+					case dataTypeFlag::doublePrecision:
 						dataContainer.variables[v][zoneCounter-1].get_double(rowCount) = std::stod(entry);
 						break;
 
-					case (char)dataTypeFlag::int32:
+					case dataTypeFlag::int32:
 						dataContainer.variables[v][zoneCounter-1].get_int32(rowCount) = std::stol(entry);
 						break;
 
-					case (char)dataTypeFlag::int16:
+					case dataTypeFlag::int16:
 						dataContainer.variables[v][zoneCounter-1].get_int16(rowCount) = (int16_t)std::stoi(entry);
 						break;
 
-					case (char)dataTypeFlag::byte:
+					case dataTypeFlag::byte:
 						dataContainer.variables[v][zoneCounter-1].get_byte(rowCount) = (uint8_t)std::stoi(entry);
 						break;
 
@@ -262,23 +262,23 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 			else {
 				//use push_back if size is not provided
 				switch(type) {
-					case (char)dataTypeFlag::singlePrecision:
+					case dataTypeFlag::singlePrecision:
 						dataContainer.variables[v][zoneCounter-1].push_back(std::stof(entry));
 						break;
 					
-					case (char)dataTypeFlag::doublePrecision:
+					case dataTypeFlag::doublePrecision:
 						dataContainer.variables[v][zoneCounter-1].push_back(std::stod(entry));
 						break;
 
-					case (char)dataTypeFlag::int32:
+					case dataTypeFlag::int32:
 						dataContainer.variables[v][zoneCounter-1].push_back((int32_t)std::stol(entry));
 						break;
 
-					case (char)dataTypeFlag::int16:
+					case dataTypeFlag::int16:
 						dataContainer.variables[v][zoneCounter-1].push_back((int16_t)std::stoi(entry));
 						break;
 
-					case (char)dataTypeFlag::byte:
+					case dataTypeFlag::byte:
 						dataContainer.variables[v][zoneCounter-1].push_back((uint8_t)std::stoi(entry));
 						break;
 
@@ -362,6 +362,10 @@ void tec_asciiReader::read_file(tec_fileContent &dataContainer) {
 
 	catch(tec_asciiReaderError const &e) {
 		std::cout << "ASCII READER ERROR!: " << e.what() << std::endl;
+	}
+	
+	catch(tec_containerError const &e) {
+		std::cout << "tec_fileContent ERROR: " << e.what() << std::endl;
 	}
 
 }

@@ -1,7 +1,5 @@
-#ifndef TEC_EXCEPT
-#define TEC_EXCEPT
-
-//#include <exception>
+#ifndef TEC_ERROR
+#define TEC_ERROR
 
 struct tec_asciiReaderError {
 	const char* error_msg;

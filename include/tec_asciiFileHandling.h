@@ -2,7 +2,7 @@
 #define TEC_ASCII_FILEHANDLE
 
 #include "tec_asciiFormat.h"
-#include "tec_exceptions.h"
+#include "tec_error.h"
 #include "tec_fileContent.h"
 
 #include <fstream>

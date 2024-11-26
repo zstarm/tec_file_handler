@@ -1,4 +1,4 @@
-#include "tec_exceptions.h"
+#include "tec_error.h"
 
 tec_asciiReaderError::tec_asciiReaderError() : error_msg("No message provided") {}
 
