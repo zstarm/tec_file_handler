@@ -3,10 +3,36 @@
 //-----------------------------------------------------------------------------------------------
 // TECPLOT ZONE DETAILS
 //-----------------------------------------------------------------------------------------------
-tec_zoneDetails::tec_zoneDetails() : zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point) {}
+tec_zoneDetails::tec_zoneDetails() : zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point), zoneTitle("ZONE 001"), I(0), J(0), K(0), strandID(0), solutionTime(0.0) {}
 
-tec_zoneDetails::~tec_zoneDetails() {}
+tec_zoneDetails::~tec_zoneDetails() {
+}
+tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &obj) {
+	I = obj.I;
+	J = obj.J;
+	K = obj.K;
 
+	dataPacking = obj.dataPacking;
+	zoneType = obj.zoneType;
+	zoneTitle = obj.zoneTitle;
+
+	strandID = obj.strandID;
+	solutionTime = obj.solutionTime;
+
+}
+
+tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &&obj) {
+	I = std::move(obj.I);
+	J = std::move(obj.J);
+	K = std::move(obj.K);
+
+	dataPacking = std::move(obj.dataPacking);
+	zoneType = std::move(obj.zoneType);
+	zoneTitle = std::move(obj.zoneTitle);
+
+	strandID = std::move(obj.strandID);
+	solutionTime = std::move(obj.solutionTime);
+}
 void tec_zoneDetails::set_IJKSize(char IJK, int size) {
 	switch(IJK) {
 		case 'I':
@@ -80,7 +106,7 @@ int tec_zoneDetails::get_size() {
 		int s = 1;
 
 		if(I) {
-			s *= 1;
+			s *= I;
 		}
 		if(J) {
 			s *= J;
@@ -89,7 +115,7 @@ int tec_zoneDetails::get_size() {
 			s *= K;
 		}
 
-		return 1;
+		return s;
 	}
 	return 0;
 }
@@ -112,7 +138,7 @@ int tec_zoneDetails::get_Kmax() {
 //-----------------------------------------------------------------------------------------------
 tec_data::tec_data() : T(dataTypeFlag::singlePrecision) {}
 
-tec_data::tec_data(tec_data& obj) : T(obj.T) {
+tec_data::tec_data(tec_data &obj) : T(obj.T) {
 	switch(T) {
 		case dataTypeFlag::singlePrecision:
 			if(obj.float_content) {
@@ -144,7 +170,7 @@ tec_data::tec_data(tec_data& obj) : T(obj.T) {
 	}
 }
 
-tec_data::tec_data(tec_data&& obj) : T(std::move(obj.T)) {
+tec_data::tec_data(tec_data &&obj) : T(std::move(obj.T)) {
 	float_content = std::move(obj.float_content);
 	double_content = std::move(obj.double_content);
 	int32_content = std::move(obj.int32_content);
@@ -405,7 +431,11 @@ dataTypeFlag tec_data::type() {
 
 float& tec_data::get_float(int idx) {
 	if(float_content) {
-		return (*float_content)[idx];
+		if(idx < (*float_content).size()) {
+			return (*float_content)[idx];
+		}
+
+		throw tec_containerError("index is out of bounds");
 	}
 
 	throw tec_containerError("no float data is allocated");
@@ -413,15 +443,23 @@ float& tec_data::get_float(int idx) {
 
 double& tec_data::get_double(int idx) {
 	if(double_content) {
-		return (*double_content)[idx];
+		if(idx < (*double_content).size()) {
+			return (*double_content)[idx];
+		}
+
+		throw tec_containerError("index is out of bounds");
 	}
 
 	throw tec_containerError("no double data is allocated");
 }
 
 int32_t& tec_data::get_int32(int idx) {
-	if(float_content) {
-		return (*int32_content)[idx];
+	if(int32_content) {
+		if(idx < (*int32_content).size()) {
+			return (*int32_content)[idx];
+		}
+
+		throw tec_containerError("index is out of bounds");
 	}
 
 	throw tec_containerError("no int32_t data is allocated");
@@ -429,7 +467,11 @@ int32_t& tec_data::get_int32(int idx) {
 
 int16_t& tec_data::get_int16(int idx) {
 	if(int16_content) {
-		return (*int16_content)[idx];
+		if(idx < (*int16_content).size()) {
+			return (*int16_content)[idx];
+		}
+
+		throw tec_containerError("index is out of bounds");
 	}
 
 	throw tec_containerError("no int16_t data is allocated");
@@ -437,7 +479,11 @@ int16_t& tec_data::get_int16(int idx) {
 
 uint8_t& tec_data::get_byte(int idx) {
 	if(byte_content) {
-		return (*byte_content)[idx];
+		if(idx < (*byte_content).size()) {
+			return (*byte_content)[idx];
+		}
+
+		throw tec_containerError("index is out of bounds");
 	}
 
 	throw tec_containerError("no byte data is allocated");
@@ -447,19 +493,20 @@ uint8_t& tec_data::get_byte(int idx) {
 //-----------------------------------------------------------------------------------------------
 // TECPLOT VARIABLE
 //-----------------------------------------------------------------------------------------------
-tec_variable::tec_variable() {}
+tec_variable::tec_variable() : name("V") {}
 
 tec_variable::tec_variable(std::string vname) : name(vname) {}
 
-tec_variable::tec_variable(tec_variable & obj) : subzoneData(obj.subzoneData) {
+tec_variable::tec_variable(tec_variable &obj) : subzoneData(obj.subzoneData) {
 	name = obj.name;
 }
 
-tec_variable::tec_variable(tec_variable && obj) : subzoneData(std::move(obj.subzoneData)){
+tec_variable::tec_variable(tec_variable &&obj) : subzoneData(std::move(obj.subzoneData)){
 	name = std::move(obj.name);
 }
 
-tec_variable::~tec_variable() {}
+tec_variable::~tec_variable() {
+}
 
 void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
 	if(zone >= subzoneData.size()) {
@@ -505,13 +552,13 @@ tec_data& tec_variable::operator[](int zoneIdx) {
 //-----------------------------------------------------------------------------------------------
 // TECPLOT FILE CONTENT
 //-----------------------------------------------------------------------------------------------
-tec_fileContent::tec_fileContent() : fType(fileTypeFlag::full) {}
+tec_fileContent::tec_fileContent() : fType(fileTypeFlag::full), title("N/A") {}
 
 tec_fileContent::~tec_fileContent() {}
 
 void tec_fileContent::print_headerDetails() {
-	std::cout << "TECPLOT FILE DETAILS" << std::endl;
-
+	std::cout << "TECPLOT FILE HEADER DETAILS" << std::endl;
+	std::cout << "-----------------------------------------" << std::endl;
 	//title
 	std::cout << "TITLE: " << title << std::endl;
 
@@ -533,16 +580,44 @@ void tec_fileContent::print_headerDetails() {
 	std::cout << "VARIABLES: ";
 	for(int v = 0; v < variables.size(); v++) {
 		std::cout << variables[v].name;
+		//ternary operator to determine if at the end of the variable list or not
 		v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+	}
+
+}
+
+void tec_fileContent::print_zoneDetails(int zidx) {
+	std::cout << "TECPLOT ZONE #" << zidx+1 << " DETAILS" << std::endl;
+	std::cout << "-----------------------------------------" << std::endl;
+	
+	//zone title
+	std::cout << "ZONE TITLE: " << zoneDetails[zidx].zoneTitle << std::endl;
+
+	//zone type
+	std::cout << "ZONE TYPE: ";
+	zoneDetails[zidx].zoneType == zoneTypeFlag::ordered ? std::cout << "ORDERED" : std::cout << "FINITE ELEMENT";
+	std::cout << std::endl;
+
+	//zone formatting/datapacking 
+	std::cout << "ZONE FORMATTING: ";
+	zoneDetails[zidx].dataPacking == formattingFlag::point ? std::cout << "POINT" : std::cout << "BLOCK";
+	std::cout << std::endl;
+
+	//transient datasets only
+	if(zoneDetails[zidx].strandID) {
+		//strand ID
+		std::cout << "ZONE STRAND ID: " << zoneDetails[zidx].strandID << std::endl;
+		std::cout << "ZONE SOLUTION TIME: " << zoneDetails[zidx].solutionTime << std::endl;
 	}
 
 }
 
 void tec_fileContent::print_fileDetails() {
 	print_headerDetails();
-	/*
+	std::cout << std::endl;	
 	for(int z = 0; z < zoneDetails.size(); z++) {
 		print_zoneDetails(z);
+		std::cout << std::endl;	
 	}
-	*/
+
 }

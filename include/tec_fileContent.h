@@ -64,10 +64,13 @@ class tec_zoneDetails {
 	formattingFlag dataPacking;
 	zoneTypeFlag zoneType;
 	std::string zoneTitle;
+
 	int strandID;
 	double solutionTime;
 	public:
 		tec_zoneDetails();
+		tec_zoneDetails(tec_zoneDetails &obj);
+		tec_zoneDetails(tec_zoneDetails &&obj);
 		~tec_zoneDetails();
 		
 		void set_formatType(char formattingType);
@@ -148,8 +151,8 @@ class tec_variable {
 	public:
 		tec_variable();
 		tec_variable(std::string vname);
-		tec_variable(tec_variable & obj);
-		tec_variable(tec_variable&& obj);
+		tec_variable(tec_variable &obj);
+		tec_variable(tec_variable &&obj);
 		~tec_variable();
 
 		void modify_name(std::string vname);
@@ -177,7 +180,7 @@ class tec_fileContent {
 		~tec_fileContent();
 		
 		void print_headerDetails();
-		//void print_zoneDetails(int zidx);
+		void print_zoneDetails(int zidx);
 		void print_fileDetails();
 		
 };
