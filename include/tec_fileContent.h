@@ -130,6 +130,7 @@ class tec_data {
 		void push_back(uint8_t val);
 
 		dataTypeFlag type();
+		int get_array_size();
 
 		float& get_float(int idx);
 		double& get_double(int idx);
@@ -187,7 +188,8 @@ class tec_fileContent {
 		
 		void print_headerDetails();
 		void print_zoneDetails(int zidx);
-		void print_fileDetails();
+		void print_zoneData(int zidx);
+		void print_fileDetails(bool include_data=false);
 		
 };
 

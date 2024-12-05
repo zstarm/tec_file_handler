@@ -437,16 +437,64 @@ dataTypeFlag tec_data::type() {
 	return T;
 }
 
+int tec_data::get_array_size() {
+	switch(T) {
+		case dataTypeFlag::singlePrecision:
+			if(float_content) {
+				return float_content->size();
+			}
+			else {
+				return 0;	
+			}
+			break;
+		case dataTypeFlag::doublePrecision:
+			if(double_content) {
+				return double_content->size();
+			}
+			else {
+				return 0;
+			}
+			break;
+		case dataTypeFlag::int32:
+			if(int32_content) {
+				return int32_content->size();
+			}
+			else {
+				return 0;
+			}
+			break;
+		case dataTypeFlag::int16:
+			if(int16_content) {
+				return int16_content->size();
+			}
+			else {
+				return 0;
+			}
+			break;
+		case dataTypeFlag::byte:
+			if(byte_content) {
+				return byte_content->size();
+			}
+			else {
+				return 0;
+			}
+			break;
+		default:
+			return 0;
+	}
+
+	return 0;
+}
 float& tec_data::get_float(int idx) {
 	if(float_content) {
 		if(idx < (*float_content).size()) {
 			return (*float_content)[idx];
 		}
 
-		throw tec_containerError("index is out of bounds");
+		throw tec_containerError("index is out of bounds when trying to retrieve float data");
 	}
 
-	throw tec_containerError("no float data is allocated");
+	throw tec_containerError("no float data is allocated when trying to retrieve float data");
 }
 
 double& tec_data::get_double(int idx) {
@@ -455,10 +503,10 @@ double& tec_data::get_double(int idx) {
 			return (*double_content)[idx];
 		}
 
-		throw tec_containerError("index is out of bounds");
+		throw tec_containerError("index is out of bounds when trying to retrieve double data");
 	}
 
-	throw tec_containerError("no double data is allocated");
+	throw tec_containerError("no double data is allocated when trying to retrieve double data");
 }
 
 int32_t& tec_data::get_int32(int idx) {
@@ -467,10 +515,10 @@ int32_t& tec_data::get_int32(int idx) {
 			return (*int32_content)[idx];
 		}
 
-		throw tec_containerError("index is out of bounds");
+		throw tec_containerError("index is out of bounds when trying to retrieve int32 data");
 	}
 
-	throw tec_containerError("no int32_t data is allocated");
+	throw tec_containerError("no int32_t data is allocated when trying to retrieve int32 data");
 }
 
 int16_t& tec_data::get_int16(int idx) {
@@ -479,10 +527,10 @@ int16_t& tec_data::get_int16(int idx) {
 			return (*int16_content)[idx];
 		}
 
-		throw tec_containerError("index is out of bounds");
+		throw tec_containerError("index is out of bounds when trying to retrieve int16 data");
 	}
 
-	throw tec_containerError("no int16_t data is allocated");
+	throw tec_containerError("no int16_t data is allocated when trying to retrieve int16 data");
 }
 
 uint8_t& tec_data::get_byte(int idx) {
@@ -491,10 +539,10 @@ uint8_t& tec_data::get_byte(int idx) {
 			return (*byte_content)[idx];
 		}
 
-		throw tec_containerError("index is out of bounds");
+		throw tec_containerError("index is out of bounds when trying to retrieve byte data");
 	}
 
-	throw tec_containerError("no byte data is allocated");
+	throw tec_containerError("no byte data is allocated when trying to retrieve byte data");
 }
 
 
@@ -525,7 +573,6 @@ void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
 		case dataTypeFlag::singlePrecision:
 			subzoneData[zone].resize<float>(_size, (float)0.0);
 			break;
-
 		case dataTypeFlag::doublePrecision:
 			subzoneData[zone].resize<double>(_size, (double)0.0);
 			break;
@@ -538,10 +585,8 @@ void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
 		case dataTypeFlag::byte:
 			subzoneData[zone].resize<uint8_t>(_size, (uint8_t)0);
 			break;
-
 		default:
-			std::string msg = "could not resize zone for the variable: " + name;
-			throw tec_containerError(msg.c_str());
+			throw tec_containerError("could not resize zone for the variable: " + name);
 	}
 }
 
@@ -622,12 +667,52 @@ void tec_fileContent::print_zoneDetails(int zidx) {
 
 }
 
-void tec_fileContent::print_fileDetails() {
+void tec_fileContent::print_zoneData(int zidx) {
+	std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DATA" << std::endl;
+	std::cout << "-----------------------------------------" << std::endl;
+	for(int v = 0; v < variables.size(); v++) {
+		std::cout << variables[v].name;
+		//ternary operator to determine if at the end of the variable list or not
+		v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+	}
+	std::cout << "-----------------------------------------" << std::endl;
+	for(int i = 0; i < zoneDetails[zidx].get_size(); i++) {
+		for(int v = 0; v < variables.size(); v++) {
+			switch(variables[v][zidx].T) {
+				case dataTypeFlag::singlePrecision:
+					std::cout << variables[v][zidx].get_float(i);
+					break;
+				case dataTypeFlag::doublePrecision:
+					std::cout << variables[v][zidx].get_double(i);
+					break;
+				case dataTypeFlag::int32:
+					std::cout << variables[v][zidx].get_int32(i);
+					break;
+				case dataTypeFlag::int16:
+					std::cout << variables[v][zidx].get_int16(i);
+					break;
+				case dataTypeFlag::byte:
+					std::cout << variables[v][zidx].get_byte(i);
+					break;
+				default:
+					throw tec_containerError("issue getting data type for variable: " + variables[v].name + " at zone" + std::to_string(zidx) + " to display");
+			}
+			//ternary operator to determine if at the end of the variable list or not
+			v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+		}
+	}
+}
+
+void tec_fileContent::print_fileDetails(bool include_data) {
 	print_headerDetails();
 	std::cout << std::endl;	
 	for(int z = 0; z < zoneDetails.size(); z++) {
 		print_zoneDetails(z);
 		std::cout << std::endl;	
+		if(include_data) {
+			print_zoneData(z);
+			std::cout << std::endl;	
+		}
 	}
 
 }

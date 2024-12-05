@@ -195,7 +195,7 @@ void tec_asciiReader::preprocess_data(std::string &line, tec_fileContent &dataCo
 			//BLOCK formatting
 			//check to make sure zone size is known
 			if(!zoneSize) {
-				throw tec_asciiReaderError("BLOCK formatting was specified but zone size (I, J, or K) was not specified!");
+				throw tec_asciiReaderError("BLOCK formatting specified for zone " + std::to_string(zoneCounter) + " but no dimensions (I, J, or K) were found!");
 			}
 			parse_blockFormatData(line, dataContainer);
 		}
@@ -203,7 +203,7 @@ void tec_asciiReader::preprocess_data(std::string &line, tec_fileContent &dataCo
 
 	else {
 		//FINITE ELEMENT DATASET
-		throw tec_asciiReaderError("reader currently doesn't not support finte element datasets");
+		throw tec_asciiReaderError("ASCII reader currently doesn't not support finte element datasets");
 		dataCount++;
 	}
 
@@ -227,7 +227,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 			pos = line.find(' ');
 			if(pos == std::string::npos) {
 				if(v+1 != nVars) {
-					throw tec_asciiReaderError("Not enough columns for identified non-shared variables");
+					throw tec_asciiReaderError("ASCII reader did not find enough columns for identified non-shared variables");
 				}
 				else {
 					entry = line;
@@ -261,7 +261,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 						break;
 
 					default:
-						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
+						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled by the ASCII reader");
 				}
 			}
 			if(zoneSize) {
@@ -288,7 +288,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 						break;
 
 					default:
-						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
+						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled by the ASCII reader");
 				}
 			}
 
@@ -316,7 +316,7 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 						break;
 
 					default:
-						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
+						throw tec_asciiReaderError("datatype identifier unsupported and could not be handled by the ASCII reader");
 				}
 			}
 		}
@@ -390,7 +390,7 @@ void tec_asciiReader::parse_blockFormatData(std::string &line, tec_fileContent &
 				break;
 
 			default:
-				throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
+				throw tec_asciiReaderError("datatype identifier unsupported and could not be handled by the ASCII reader");
 		}
 	}
 	
@@ -435,18 +435,17 @@ void tec_asciiReader::parse_blockFormatData(std::string &line, tec_fileContent &
 				break;
 
 			default:
-				throw tec_asciiReaderError("datatype identifier unsupported and could not be handled");
+				throw tec_asciiReaderError("datatype identifier unsupported and could not be handled by the ASCII reader");
 		}
 		dataCount++;
 	}
 }
 
 void tec_asciiReader::read_file(tec_fileContent &dataContainer) {
-	try {
-		if(!fname.empty()) {
-			in_fs = std::ifstream(fname);
-
-			if(in_fs.is_open()) {
+	if(!fname.empty()) {
+		in_fs = std::ifstream(fname);
+		if(in_fs.is_open()) {
+			try {
 				std::string file_line;
 				int lineCounter = 0;
 				while(!in_fs.eof()) {
@@ -470,26 +469,39 @@ void tec_asciiReader::read_file(tec_fileContent &dataContainer) {
 					lineCounter++;
 				}
 				in_fs.close();
+				for(int z = 0; z < dataContainer.zoneDetails.size(); z++) {
+					if(!dataContainer.zoneDetails[z].get_size()) {
+						int s = 0;
+						int v = 0; 
+						while(!s && v < dataContainer.variables.size()) {
+							s = dataContainer.variables[v][z].get_array_size();
+						}
+						dataContainer.zoneDetails[z].set_IJKSize('I', s);
+					}
+				}
 			}
 
-			else {
-				std::cout << "ERROR!: could not open or find file name: " << fname << std::endl;
+			catch(tec_asciiReaderError const &e) {
+				std::cout << "ASCII READER ERROR!: " << e.what() << std::endl;
+				std::cout << "Exciting file reading..." << std::endl;
 			}
+			
+			catch(tec_containerError const &e) {
+				std::cout << "DATA CONTAINER ERROR: " << e.what() << std::endl;
+				std::cout << "Exciting file reading..." << std::endl;
+			}
+
 		}
 
 		else {
-			std::cout << "ERROR!: file name is empty" << std::endl;
+			std::cout << "ERROR!: could not open or find file name: " << fname << std::endl;
 		}
-
 	}
 
-	catch(tec_asciiReaderError const &e) {
-		std::cout << "ASCII READER ERROR!: " << e.what() << std::endl;
+	else {
+		std::cout << "ERROR!: file name is empty" << std::endl;
 	}
-	
-	catch(tec_containerError const &e) {
-		std::cout << "tec_fileContent ERROR: " << e.what() << std::endl;
-	}
+
 
 }
 
