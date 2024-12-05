@@ -1,9 +1,8 @@
 title=	"throwing in rando &*^*( characters : 2.1s  4DPTV VORTEX DISTRIBUTION LINES   "    
 VARIABLES = x				 y   z 				
-FILETYPE = solution
 ZONE T="4DPTV yy_line" 
 I = 16
-ZONETYPE=Order, 			DATAPACKING=  POINT
+ZONETYPE=Ordered, 			DATAPACKING=  POINT
 1.197268e-01  1.961886e-03  -5.729647e-02  
 1.197268e-01  2.663538e-03  -5.729647e-02  
 1.197268e-01  3.365189e-03  -5.729647e-02  
