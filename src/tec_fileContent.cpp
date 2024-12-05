@@ -3,11 +3,11 @@
 //-----------------------------------------------------------------------------------------------
 // TECPLOT ZONE DETAILS
 //-----------------------------------------------------------------------------------------------
-tec_zoneDetails::tec_zoneDetails() : zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point), zoneTitle("ZONE 001"), I(0), J(0), K(0), strandID(0), solutionTime(0.0) {}
+tec_zoneDetails::tec_zoneDetails(int zid) : zoneID(zid), zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point), zoneTitle("ZONE 001"), I(0), J(0), K(0), strandID(0), solutionTime(0.0) {}
 
 tec_zoneDetails::~tec_zoneDetails() {
 }
-tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &obj) {
+tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &obj) : zoneID(obj.zoneID) {
 	I = obj.I;
 	J = obj.J;
 	K = obj.K;
@@ -21,7 +21,7 @@ tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &obj) {
 
 }
 
-tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &&obj) {
+tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &&obj) : zoneID(std::move(obj.zoneID)) {
 	I = std::move(obj.I);
 	J = std::move(obj.J);
 	K = std::move(obj.K);
@@ -91,6 +91,14 @@ void tec_zoneDetails::set_zoneType(char type) {
 
 void tec_zoneDetails::set_zoneTitle(std::string title) {
 	zoneTitle = title;
+}
+
+void tec_zoneDetails::set_strandID(int strand) {
+	strandID = strand;
+}
+
+void tec_zoneDetails::set_solutionTime(double time) {
+	solutionTime = time;
 }
 
 formattingFlag tec_zoneDetails::get_formattingType() {
@@ -587,7 +595,7 @@ void tec_fileContent::print_headerDetails() {
 }
 
 void tec_fileContent::print_zoneDetails(int zidx) {
-	std::cout << "TECPLOT ZONE #" << zidx+1 << " DETAILS" << std::endl;
+	std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DETAILS" << std::endl;
 	std::cout << "-----------------------------------------" << std::endl;
 	
 	//zone title
@@ -602,6 +610,8 @@ void tec_fileContent::print_zoneDetails(int zidx) {
 	std::cout << "ZONE FORMATTING: ";
 	zoneDetails[zidx].dataPacking == formattingFlag::point ? std::cout << "POINT" : std::cout << "BLOCK";
 	std::cout << std::endl;
+
+	std::cout << "ZONE DIMENSIONS: I = " << zoneDetails[zidx].I << ", J = " << zoneDetails[zidx].J << ", K = " << zoneDetails[zidx].K << std::endl;
 
 	//transient datasets only
 	if(zoneDetails[zidx].strandID) {

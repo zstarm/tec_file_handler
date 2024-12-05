@@ -17,14 +17,16 @@ class tec_asciiReader {
 
 	int zoneCounter;
 	int zoneSize;
-	int rowCount;
+	int dataCount;
+	int varCount;
 
 	void parse_headerLine(std::string &line, tec_fileContent &dataContainer);
 	void parse_zoneLine(std::string &line, tec_fileContent &dataContainer);
 	void preprocess_data(std::string &line, tec_fileContent &dataContainer);
 
 	void parse_pointFormatData(std::string &line, tec_fileContent &dataContainer); 
-
+	void parse_blockFormatData(std::string &line, tec_fileContent &dataContainer); 
+	
 
 	public:
 		tec_asciiReader();

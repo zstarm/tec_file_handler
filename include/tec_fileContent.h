@@ -67,16 +67,22 @@ class tec_zoneDetails {
 
 	int strandID;
 	double solutionTime;
+
+	
 	public:
-		tec_zoneDetails();
+		tec_zoneDetails(int zid);
 		tec_zoneDetails(tec_zoneDetails &obj);
 		tec_zoneDetails(tec_zoneDetails &&obj);
 		~tec_zoneDetails();
+
+		const int zoneID;
 		
 		void set_formatType(char formattingType);
 		void set_zoneType(char type);
 		void set_zoneTitle(std::string title);
 		void set_IJKSize(char IJK, int size);
+		void set_strandID(int strand);
+		void set_solutionTime(double time);
 
 		formattingFlag get_formattingType();
 		zoneTypeFlag get_zoneType();
