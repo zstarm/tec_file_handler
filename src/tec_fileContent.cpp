@@ -3,11 +3,28 @@
 //-----------------------------------------------------------------------------------------------
 // TECPLOT ZONE DETAILS
 //-----------------------------------------------------------------------------------------------
-tec_zoneDetails::tec_zoneDetails(int zid) : zoneID(zid), zoneType(zoneTypeFlag::ordered), dataPacking(formattingFlag::point), zoneTitle("ZONE 001"), I(0), J(0), K(0), strandID(0), solutionTime(0.0) {}
+tec_zoneDetails::tec_zoneDetails(int zid, size_t vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
+	zoneType = zoneTypeFlag::ordered; 
+	dataPacking = formattingFlag::point;
+	I = 0;
+	J = 0;
+	K = 0;
+	strandID = 0;
+	solutionTime = 0.0;
+
+	zone_sharedVars.resize(nVars);
+	zone_passiveVars.resize(nVars);
+	zone_varDTs.resize(nVars);
+
+}
 
 tec_zoneDetails::~tec_zoneDetails() {
 }
+
 tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &obj) : zoneID(obj.zoneID) {
+	
+	nVars = obj.nVars;
+
 	I = obj.I;
 	J = obj.J;
 	K = obj.K;
@@ -19,9 +36,19 @@ tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &obj) : zoneID(obj.zoneID) {
 	strandID = obj.strandID;
 	solutionTime = obj.solutionTime;
 
+	hasSharedVars = obj.hasSharedVars;
+	hasPassiveVars = obj.hasPassiveVars;
+
+	zone_varDTs = obj.zone_varDTs;
+	zone_sharedVars = obj.zone_sharedVars;
+	zone_passiveVars = obj.zone_passiveVars;
+
 }
 
 tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &&obj) : zoneID(std::move(obj.zoneID)) {
+	
+	nVars = std::move(obj.nVars);
+
 	I = std::move(obj.I);
 	J = std::move(obj.J);
 	K = std::move(obj.K);
@@ -32,7 +59,15 @@ tec_zoneDetails::tec_zoneDetails(tec_zoneDetails &&obj) : zoneID(std::move(obj.z
 
 	strandID = std::move(obj.strandID);
 	solutionTime = std::move(obj.solutionTime);
+	
+	hasSharedVars = std::move(obj.hasSharedVars);
+	hasPassiveVars = std::move(obj.hasPassiveVars);
+
+	zone_varDTs = std::move(obj.zone_varDTs);
+	zone_sharedVars = std::move(obj.zone_sharedVars);
+	zone_passiveVars = std::move(obj.zone_passiveVars);
 }
+
 void tec_zoneDetails::set_IJKSize(char IJK, int size) {
 	switch(IJK) {
 		case 'I':
@@ -101,6 +136,85 @@ void tec_zoneDetails::set_solutionTime(double time) {
 	solutionTime = time;
 }
 
+void tec_zoneDetails::set_varDT(int vidx, dataTypeFlag type, bool resize) {
+	if(vidx < nVars) {
+		zone_varDTs[vidx] = type;
+	}
+	else {
+		if(resize) {
+			zone_varDTs.resize(++vidx, type);
+			nVars = vidx;
+		}
+		else {
+			throw tec_containerError("variable index is out of range for setting data type!");
+		}
+	}
+}
+
+void tec_zoneDetails::set_sharedVar(int vidx, sharedVarFlag flag, bool resize) {
+	if(vidx < nVars) {
+		zone_sharedVars[vidx] = flag;
+		if(flag == sharedVarFlag::shared && !hasSharedVars) {
+			hasPassiveVars = true;	
+		}
+		else if(flag == sharedVarFlag::nonshared && hasSharedVars) {
+			//check to see if other passive vars exist before changing flag
+			for(int v = 0; v < nVars; v++) {
+				if(zone_sharedVars[v] == sharedVarFlag::shared) {
+					break;
+				}
+				else if(v+1 == nVars) {
+					hasSharedVars = false;
+				}
+			}
+		}
+	}
+	else {
+		if(resize) {
+			zone_sharedVars.resize(++vidx, flag);
+			nVars = vidx;
+			if(flag != (sharedVarFlag)hasSharedVars) {
+				hasSharedVars = (bool)flag;
+			}
+		}
+		else {
+			throw tec_containerError("variable index is out of range for setting shared flag!");
+		}
+	}
+}
+
+void tec_zoneDetails::set_passiveVar(int vidx, passiveVarFlag flag, bool resize) {
+	if(vidx < nVars) {
+		zone_passiveVars[vidx] = flag;
+		if(flag == passiveVarFlag::passive && !hasPassiveVars) {
+			hasPassiveVars = true;	
+		}
+		else if(flag == passiveVarFlag::nonpassive && hasPassiveVars) {
+			//check to see if other passive vars exist before changing flag
+			for(int v = 0; v < nVars; v++) {
+				if(zone_passiveVars[v] == passiveVarFlag::passive) {
+					break;
+				}
+				else if(v+1 == nVars) {
+					hasPassiveVars = false;
+				}
+			}
+		}
+	}
+	else {
+		if(resize) {
+			zone_passiveVars.resize(++vidx, flag);
+			nVars = vidx;
+			if(flag != (passiveVarFlag)hasPassiveVars) {
+				hasPassiveVars = (bool)flag;
+			}
+		}
+		else {
+			throw tec_containerError("variable index is out of range for setting passive flag!");
+		}
+	}
+}
+
 formattingFlag tec_zoneDetails::get_formattingType() {
 	return dataPacking;
 }
@@ -140,11 +254,18 @@ int tec_zoneDetails::get_Kmax() {
 	return K;
 }
 
+std::vector<dataTypeFlag>* tec_zoneDetails::get_varDTs() {
+	if(!zone_varDTs.size()) {
+		throw tec_containerError("variable type vector is empty!");
+	}
+	return &zone_varDTs;
+}
 
 //-----------------------------------------------------------------------------------------------
 // TECPLOT DATA
 //-----------------------------------------------------------------------------------------------
-tec_data::tec_data() : T(dataTypeFlag::singlePrecision) {}
+tec_data::tec_data() : T(dataTypeFlag::singlePrecision) {
+}
 
 tec_data::tec_data(tec_data &obj) : T(obj.T) {
 	switch(T) {
@@ -186,7 +307,8 @@ tec_data::tec_data(tec_data &&obj) : T(std::move(obj.T)) {
 	byte_content = std::move(obj.byte_content);
 }
 
-tec_data::tec_data(dataTypeFlag type) : T(type) {}
+tec_data::tec_data(dataTypeFlag type) : T(type) {
+}
 
 tec_data::tec_data(dataTypeFlag type, int size) : T(type) {
 	allocate(size);
@@ -565,8 +687,8 @@ tec_variable::~tec_variable() {
 }
 
 void tec_variable::resize_zone(int zone, int _size, dataTypeFlag T) {
-	if(zone >= subzoneData.size()) {
-		subzoneData.resize(_size);
+	while(zone >= subzoneData.size()) {
+		subzoneData.push_back(T);
 	}
 	
 	switch(T) {
@@ -672,6 +794,27 @@ void tec_fileContent::print_zoneData(int zidx) {
 	std::cout << "-----------------------------------------" << std::endl;
 	for(int v = 0; v < variables.size(); v++) {
 		std::cout << variables[v].name;
+		std::cout << "(";
+		switch(variables[v][zidx].T) {
+			case dataTypeFlag::singlePrecision:
+				std::cout << "SINGLE";
+				break;
+			case dataTypeFlag::doublePrecision:
+				std::cout << "DOUBLE";
+				break;
+			case dataTypeFlag::int32:
+				std::cout << "LONGINT";
+				break;
+			case dataTypeFlag::int16:
+				std::cout << "SHORTINT";
+				break;
+			case dataTypeFlag::byte:
+				std::cout << "BYTE";
+				break;
+			default:
+				throw tec_containerError("issue getting data type for variable: " + variables[v].name + " at zone" + std::to_string(zidx) + " to display");
+		}
+		std::cout << ")";
 		//ternary operator to determine if at the end of the variable list or not
 		v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
 	}

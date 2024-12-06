@@ -89,8 +89,10 @@ void tec_asciiReader::parse_zoneLine(std::string &line, tec_fileContent &dataCon
 		if(pos_tmp == std::string::npos && ID == 'Z') {
 			//creates new subzone if ZONE keyword is encountered
 			zoneCounter++; //increase counter
-			dataContainer.zoneDetails.push_back(zoneCounter); //push back new instance of zone details
-			dataCount = 0; //reset the data counter for the zone
+			//push back new instance of zone details
+			dataContainer.zoneDetails.push_back({zoneCounter, dataContainer.variables.size()}); 
+			//reset the data counter and variable counter for the zone
+			dataCount = 0; 
 			varCount = 0;
 			line.erase(0,pos+1);
 			continue;
@@ -106,6 +108,14 @@ void tec_asciiReader::parse_zoneLine(std::string &line, tec_fileContent &dataCon
 				}
 				else if(tmp_char == 'T') {
 					//parse for datatype of variables
+					//first need to redo field substr to capture full DT list
+					pos = line.find(')');
+					field = line.substr(pos_tmp+2,pos-pos_tmp); 
+					pos++; //increment pos s.t. it is the position of the comma after the parens
+						   //ensures reader moves to the next keyword for next loop/call
+					
+					//now parse throw the list of variable DTs
+					parse_dataTypeList(pos_tmp, line, field, dataContainer);	
 				}
 				else {
 					std::cout << "WARNING!: ignoring an unrecognized/unsupported subzone keyword identifier" << std::endl;
@@ -171,11 +181,77 @@ void tec_asciiReader::parse_zoneLine(std::string &line, tec_fileContent &dataCon
 	}	
 }
 
+void tec_asciiReader::parse_dataTypeList(size_t& pos_tmp, std::string& line, std::string& field, tec_fileContent &dataContainer) {
+	std::cout << "data type list parser called for zone " << zoneCounter << std::endl;
+	varCount = 0;
+	char tmp_char;
+	bool keep_parsing = true;
+	int nVars = dataContainer.variables.size();
+	while(keep_parsing) {
+		pos_tmp = field.find(',');
+		if(pos_tmp == std::string::npos) {
+			keep_parsing = false;
+			pos_tmp = field.length();
+		}
+		
+		bool resize_needed = false;
+		if(!nVars) {
+			//if the number of variables is unknown push back instances of vars
+			dataContainer.variables.push_back("V"+std::to_string(varCount+1));
+			resize_needed = true;
+		}
+		tmp_char = std::toupper(field[0]);
+		if(tmp_char == 'D') {
+			dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::doublePrecision, resize_needed);
+			while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+				dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::doublePrecision);
+			}
+		}
+		else if(tmp_char == 'L') {
+			dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::int32);
+			while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+				dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::int32);
+			}	
+		}
+		else if(tmp_char == 'S') {
+			tmp_char = std::toupper(field[1]);
+			if(tmp_char == 'H') {
+				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::int16, resize_needed);
+				while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+					dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::int16);
+				}
+			}
+			else {
+				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::singlePrecision, resize_needed);
+				while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+					dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
+				}
+			}
+		}
+		else if(tmp_char == 'B') {
+			dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::byte, resize_needed);
+			while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+				dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::byte);
+			}
+		}
+		else {
+			std::cout << "WARNING!: unrecognized datatype... Defaulting to type SINGLE" << std::endl;
+			dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::singlePrecision, resize_needed);
+			while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+				dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
+			}
+		}
+		field.erase(0,++pos_tmp); //erase through the next inner list comma
+		varCount++; //increment varCount while searching
+	}
+	varCount = 0; //reset the count for the data parsing functions
+}
+
 void tec_asciiReader::preprocess_data(std::string &line, tec_fileContent &dataContainer) {
 	if(!zoneCounter) {
 		//if no zone header was encountered, create a single zone
 		zoneCounter++; 
-		dataContainer.zoneDetails.push_back(1); //create single instance of zone details
+		dataContainer.zoneDetails.push_back({1, dataContainer.variables.size()}); //create single instance of zone details
 		dataContainer.zoneDetails[zoneCounter].set_zoneTitle("ZONE 001");
 		dataCount = 0;
 		varCount = 0;
@@ -197,6 +273,9 @@ void tec_asciiReader::preprocess_data(std::string &line, tec_fileContent &dataCo
 			if(!zoneSize) {
 				throw tec_asciiReaderError("BLOCK formatting specified for zone " + std::to_string(zoneCounter) + " but no dimensions (I, J, or K) were found!");
 			}
+			if(!dataContainer.variables.size()) {
+				throw tec_asciiReaderError("BLOCK formatting specified for zone " + std::to_string(zoneCounter) + " but number of variables is unknown");
+			}
 			parse_blockFormatData(line, dataContainer);
 		}
 	}
@@ -217,10 +296,10 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 	if(nVars) {
 		//if variables are known, iterate through the stored tec_variables and enter data
 		for(int v = 0; v < nVars; v++) {
-			if(dataContainer.variables[v].subzoneData.size() != zoneCounter) {
-				//resize subzoneData vector to match zone counter of reader
+			while(dataContainer.variables[v].subzoneData.size() < zoneCounter) {
+				//push back subzoneData vector to match zone counter of reader
 				//should only occur if the data type for zone was not specified
-				dataContainer.variables[v].subzoneData.resize(zoneCounter);
+				dataContainer.variables[v].subzoneData.push_back(dataTypeFlag::singlePrecision);
 			}
 			type = dataContainer.variables[v][zoneCounter-1].type(); //get data type of current variable
 			//extract single data entry in the file
@@ -324,9 +403,12 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 	else {
 		//number of variables is unknown
 		bool repeat = true;
+		varCount = 0;
 		while(repeat) {
 			//push back a variable with default settings
 			dataContainer.variables.push_back("V" + std::to_string(++nVars));
+			//std::cout << "called " << nVars << " times" << std::endl;
+			dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, dataTypeFlag::singlePrecision, true);
 			pos = line.find(' ');
 			if(pos == std::string::npos) {
 				repeat = false;
@@ -347,7 +429,9 @@ void tec_asciiReader::parse_pointFormatData(std::string &line, tec_fileContent  
 			else {
 				dataContainer.variables[nVars-1][zoneCounter-1].push_back(std::stof(entry));
 			}
+			varCount++;
 		}
+		varCount = 0;
 	}
 }
 
@@ -358,10 +442,10 @@ void tec_asciiReader::parse_blockFormatData(std::string &line, tec_fileContent &
 		varCount++;
 		dataCount = 0;
 	}
-	if(dataContainer.variables[varCount].subzoneData.size() != zoneCounter) {
-		//resize subzoneData vector to match zone counter of reader
+	while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+		//push back a subzoneData instance to match zone counter of reader
 		//should only occur if the data type for zone was not specified
-		dataContainer.variables[varCount].subzoneData.resize(zoneCounter);
+		dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
 	}
 	dataTypeFlag type;
 	type = dataContainer.variables[varCount][zoneCounter-1].type(); //get data type of current variable

@@ -28,12 +28,13 @@ enum class fileTypeFlag : char {
 	solution = '2'
 };
 
-enum class dataTypeFlag : char {
-	singlePrecision = '0',
-	doublePrecision = '1',
-	int32 = '2',
-	int16 = '3',
-	byte = '4'
+enum class dataTypeFlag : int32_t {
+	singlePrecision = 1,
+	doublePrecision = 2,
+	int32 = 3,
+	int16 = 4,
+	byte = 5,
+	bit = 6
 };
 
 enum class sharedVarFlag : bool {
@@ -57,9 +58,10 @@ enum class zoneTypeFlag : char {
 };
 
 class tec_zoneDetails {
-	
 	friend class tec_fileContent;
 	
+	int nVars;
+
 	int I, J, K;
 	formattingFlag dataPacking;
 	zoneTypeFlag zoneType;
@@ -68,9 +70,15 @@ class tec_zoneDetails {
 	int strandID;
 	double solutionTime;
 
+	bool hasSharedVars;
+	bool hasPassiveVars;
+
+	std::vector<dataTypeFlag> zone_varDTs;
+	std::vector<sharedVarFlag> zone_sharedVars;
+	std::vector<passiveVarFlag> zone_passiveVars;
 	
 	public:
-		tec_zoneDetails(int zid);
+		tec_zoneDetails(int zid, size_t vars);
 		tec_zoneDetails(tec_zoneDetails &obj);
 		tec_zoneDetails(tec_zoneDetails &&obj);
 		~tec_zoneDetails();
@@ -84,12 +92,18 @@ class tec_zoneDetails {
 		void set_strandID(int strand);
 		void set_solutionTime(double time);
 
+		void set_sharedVar(int vidx, sharedVarFlag flag, bool resize = false);
+		void set_passiveVar(int vidx, passiveVarFlag flag, bool resize = false);
+		void set_varDT(int vidx, dataTypeFlag type, bool resize =  false);
+
 		formattingFlag get_formattingType();
 		zoneTypeFlag get_zoneType();
 		int get_size();
 		int get_Imax();
 		int get_Jmax();
 		int get_Kmax();
+
+		std::vector<dataTypeFlag>* get_varDTs();
 };
 
 class tec_data {

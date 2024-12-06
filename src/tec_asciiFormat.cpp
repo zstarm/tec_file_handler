@@ -49,10 +49,13 @@ bool tec_asciiFormatter::format_subzoneHeader(std::string &line, const char* del
 															  //within quotes with a comma
 		line = std::regex_replace(line, pattern, delim);
 		
-		change_pattern("^,|,(?=,+)|,$"); //remove any oddly placed comma
+		//remove any oddly placed comma
+		change_pattern("^,|,(?=,+)|,(?=\\))|,$"); 
 		line = std::regex_replace(line, pattern, ""); 
+		change_pattern("\\(,"); 
+		line = std::regex_replace(line, pattern, "("); 
 
-		change_pattern("\""); //safe to remove all commas now
+		change_pattern("\""); //safe to remove all quotes now
 		line = std::regex_replace(line, pattern, ""); 
 		
 		return true;
