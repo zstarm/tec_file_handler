@@ -136,13 +136,13 @@ void tec_zoneDetails::set_solutionTime(double time) {
 	solutionTime = time;
 }
 
-void tec_zoneDetails::set_varDT(int vidx, dataTypeFlag type, bool resize) {
+void tec_zoneDetails::set_varDT(int vidx, dataTypeFlag type, bool push) {
 	if(vidx < nVars) {
 		zone_varDTs[vidx] = type;
 	}
 	else {
-		if(resize) {
-			zone_varDTs.resize(++vidx, type);
+		if(push) {
+			zone_varDTs.push_back(type);
 			nVars = vidx;
 		}
 		else {
@@ -151,16 +151,16 @@ void tec_zoneDetails::set_varDT(int vidx, dataTypeFlag type, bool resize) {
 	}
 }
 
-void tec_zoneDetails::set_sharedVar(int vidx, sharedVarFlag flag, bool resize) {
+void tec_zoneDetails::set_sharedVar(int vidx, int32_t zidx, bool push) {
 	if(vidx < nVars) {
-		zone_sharedVars[vidx] = flag;
-		if(flag == sharedVarFlag::shared && !hasSharedVars) {
+		zone_sharedVars[vidx] = zidx;
+		if(zidx && !hasSharedVars) {
 			hasPassiveVars = true;	
 		}
-		else if(flag == sharedVarFlag::nonshared && hasSharedVars) {
+		else if(!zidx && hasSharedVars) {
 			//check to see if other passive vars exist before changing flag
 			for(int v = 0; v < nVars; v++) {
-				if(zone_sharedVars[v] == sharedVarFlag::shared) {
+				if(zone_sharedVars[v]) {
 					break;
 				}
 				else if(v+1 == nVars) {
@@ -170,11 +170,11 @@ void tec_zoneDetails::set_sharedVar(int vidx, sharedVarFlag flag, bool resize) {
 		}
 	}
 	else {
-		if(resize) {
-			zone_sharedVars.resize(++vidx, flag);
+		if(push) {
+			zone_sharedVars.push_back(zidx);
 			nVars = vidx;
-			if(flag != (sharedVarFlag)hasSharedVars) {
-				hasSharedVars = (bool)flag;
+			if(zidx && !hasSharedVars) {
+				hasSharedVars = true;
 			}
 		}
 		else {
@@ -183,7 +183,7 @@ void tec_zoneDetails::set_sharedVar(int vidx, sharedVarFlag flag, bool resize) {
 	}
 }
 
-void tec_zoneDetails::set_passiveVar(int vidx, passiveVarFlag flag, bool resize) {
+void tec_zoneDetails::set_passiveVar(int vidx, passiveVarFlag flag, bool push) {
 	if(vidx < nVars) {
 		zone_passiveVars[vidx] = flag;
 		if(flag == passiveVarFlag::passive && !hasPassiveVars) {
@@ -202,11 +202,11 @@ void tec_zoneDetails::set_passiveVar(int vidx, passiveVarFlag flag, bool resize)
 		}
 	}
 	else {
-		if(resize) {
-			zone_passiveVars.resize(++vidx, flag);
+		if(push) {
+			zone_passiveVars.push_back(flag);
 			nVars = vidx;
-			if(flag != (passiveVarFlag)hasPassiveVars) {
-				hasPassiveVars = (bool)flag;
+			if((bool)flag && !hasPassiveVars) {
+				hasPassiveVars = true;
 			}
 		}
 		else {
@@ -260,6 +260,14 @@ std::vector<dataTypeFlag>* tec_zoneDetails::get_varDTs() {
 	}
 	return &zone_varDTs;
 }
+
+std::vector<int32_t>* tec_zoneDetails::get_sharedList() {
+	if(!zone_varDTs.size()) {
+		return NULL;
+	}
+	return &zone_sharedVars;
+}
+
 
 //-----------------------------------------------------------------------------------------------
 // TECPLOT DATA
@@ -732,8 +740,9 @@ tec_fileContent::tec_fileContent() : fType(fileTypeFlag::full), title("N/A") {}
 tec_fileContent::~tec_fileContent() {}
 
 void tec_fileContent::print_headerDetails() {
+	std::cout << "---------------------------------------------------------------------------------" << std::endl;
 	std::cout << "TECPLOT FILE HEADER DETAILS" << std::endl;
-	std::cout << "-----------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------------------------------------------" << std::endl;
 	//title
 	std::cout << "TITLE: " << title << std::endl;
 
@@ -752,18 +761,18 @@ void tec_fileContent::print_headerDetails() {
 	}
 
 	//variable list
-	std::cout << "VARIABLES: ";
+	std::cout << "VARIABLES (#SZ): ";
 	for(int v = 0; v < variables.size(); v++) {
 		std::cout << variables[v].name;
+		std::cout << "(" << variables[v].subzoneData.size() << ")";
 		//ternary operator to determine if at the end of the variable list or not
 		v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
 	}
-
 }
 
 void tec_fileContent::print_zoneDetails(int zidx) {
 	std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DETAILS" << std::endl;
-	std::cout << "-----------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------------------------------------------" << std::endl;
 	
 	//zone title
 	std::cout << "ZONE TITLE: " << zoneDetails[zidx].zoneTitle << std::endl;
@@ -791,10 +800,16 @@ void tec_fileContent::print_zoneDetails(int zidx) {
 
 void tec_fileContent::print_zoneData(int zidx) {
 	std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DATA" << std::endl;
-	std::cout << "-----------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------------------------------------------" << std::endl;
 	for(int v = 0; v < variables.size(); v++) {
 		std::cout << variables[v].name;
 		std::cout << "(";
+		if(zoneDetails[zidx].zone_sharedVars[v]) {
+			std::cout << "SHARED)";
+			//ternary operator to determine if at the end of the variable list or not
+			v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+			continue;
+		}
 		switch(variables[v][zidx].T) {
 			case dataTypeFlag::singlePrecision:
 				std::cout << "SINGLE";
@@ -818,9 +833,16 @@ void tec_fileContent::print_zoneData(int zidx) {
 		//ternary operator to determine if at the end of the variable list or not
 		v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
 	}
-	std::cout << "-----------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------------------------------------------" << std::endl;
 	for(int i = 0; i < zoneDetails[zidx].get_size(); i++) {
 		for(int v = 0; v < variables.size(); v++) {
+			if(zoneDetails[zidx].zone_sharedVars[v]) {
+				if(!v) {
+					continue;
+				}
+				v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+				continue;
+			}
 			switch(variables[v][zidx].T) {
 				case dataTypeFlag::singlePrecision:
 					std::cout << variables[v][zidx].get_float(i);

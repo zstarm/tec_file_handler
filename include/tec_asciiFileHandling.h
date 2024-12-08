@@ -27,7 +27,9 @@ class tec_asciiReader {
 	void parse_pointFormatData(std::string &line, tec_fileContent &dataContainer); 
 	void parse_blockFormatData(std::string &line, tec_fileContent &dataContainer); 
 
-	void parse_dataTypeList(size_t& pos_tmp, std::string& line, std::string& field, tec_fileContent &dataContainer);
+	void parse_dataTypeList(size_t& pos_tmp, std::string& field, tec_fileContent &dataContainer);
+	void parse_shareList(size_t& pos_tmp, std::string& field, tec_fileContent &dataContainer);
+	//void parse_passiveList(size_t& pos_tmp, std::string& field, tec_fileContent &dataContainer);
 	
 
 	public:

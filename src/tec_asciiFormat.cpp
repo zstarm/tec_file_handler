@@ -44,16 +44,20 @@ bool tec_asciiFormatter::format_subzoneHeader(std::string &line, const char* del
 		
 		change_pattern("\\s*=+\\s*"); //remove any whitespace before and after the equal signs
 		line = std::regex_replace(line, pattern, "=");
+		change_pattern("\\s*-+\\s*"); //remove any whitespace before and after the minus signs
+		line = std::regex_replace(line, pattern, "-");
 
 		change_pattern("\\s+(?=([^\"]*\"[^\"]*\")*[^\"]*$)"); //replace any white space not
 															  //within quotes with a comma
 		line = std::regex_replace(line, pattern, delim);
 		
 		//remove any oddly placed comma
-		change_pattern("^,|,(?=,+)|,(?=\\))|,$"); 
+		change_pattern("^,|,+(?=,)|,+(?=\\))|,+(?=\\])|,$"); 
 		line = std::regex_replace(line, pattern, ""); 
-		change_pattern("\\(,"); 
+		change_pattern("\\(,+"); 
 		line = std::regex_replace(line, pattern, "("); 
+		change_pattern("\\[,+"); 
+		line = std::regex_replace(line, pattern, "["); 
 
 		change_pattern("\""); //safe to remove all quotes now
 		line = std::regex_replace(line, pattern, ""); 

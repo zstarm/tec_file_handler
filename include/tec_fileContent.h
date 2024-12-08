@@ -17,7 +17,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <type_traits>
+//#include <type_traits>
+#include <unordered_map>
 #include <memory>
 
 #include "tec_error.h"
@@ -74,7 +75,7 @@ class tec_zoneDetails {
 	bool hasPassiveVars;
 
 	std::vector<dataTypeFlag> zone_varDTs;
-	std::vector<sharedVarFlag> zone_sharedVars;
+	std::vector<int32_t> zone_sharedVars;
 	std::vector<passiveVarFlag> zone_passiveVars;
 	
 	public:
@@ -92,9 +93,9 @@ class tec_zoneDetails {
 		void set_strandID(int strand);
 		void set_solutionTime(double time);
 
-		void set_sharedVar(int vidx, sharedVarFlag flag, bool resize = false);
-		void set_passiveVar(int vidx, passiveVarFlag flag, bool resize = false);
-		void set_varDT(int vidx, dataTypeFlag type, bool resize =  false);
+		void set_sharedVar(int vidx, int32_t zidx, bool push = false);
+		void set_passiveVar(int vidx, passiveVarFlag flag, bool push = false);
+		void set_varDT(int vidx, dataTypeFlag type, bool push =  false);
 
 		formattingFlag get_formattingType();
 		zoneTypeFlag get_zoneType();
@@ -104,6 +105,8 @@ class tec_zoneDetails {
 		int get_Kmax();
 
 		std::vector<dataTypeFlag>* get_varDTs();
+		std::vector<int32_t>* get_sharedList();
+		//std::vector<passiveVarFlag>* get_passiveList();
 };
 
 class tec_data {
@@ -195,6 +198,7 @@ class tec_fileContent {
 
 		std::vector<tec_variable> variables;
 		std::vector<tec_zoneDetails> zoneDetails; 
+		std::unordered_map<std::string, size_t> var_map;
 
 	public:
 		tec_fileContent();
