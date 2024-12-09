@@ -37,9 +37,10 @@ bool tec_asciiFormatter::format_header(std::string &line, const char* delim, con
 
 bool tec_asciiFormatter::format_subzoneHeader(std::string &line, const char* delim, const char* separator) {
 	change_pattern("\\bZONE\\b|\\bZONETYPE\\b|\\bI\\b|\\bJ\\b|\\bK\\b|\\bDT\\b|\\bF\\b|"
-			"\\bDATAPACKING\\b|\\bVARSHARELIST\\b|\\bCONNECTIVITYSHAREZONE\\b|\\STRANDID\\b|"
+			"\\bDATAPACKING\\b|\\bVARSHARELIST\\b|\\bPASSIVEVARLIST\\b|\\STRANDID\\b|"
 			"\\bSOLUTIONTIME\\b");
-	//\\bNODES\\b|\\bELEMENTS\\b|\\bELEMENTS\\b|\\bFACES\\bTOTALNUMFACE");
+
+	//\\bNODES\\b|\\bELEMENTS\\b|\\bCONNECTIVITYSHAREZONE\\b|\\bELEMENTS\\b|\\bFACES\\bTOTALNUMFACE");
 	if(std::regex_search(line, pattern)) {
 		
 		change_pattern("\\s*=+\\s*"); //remove any whitespace before and after the equal signs

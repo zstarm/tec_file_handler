@@ -136,7 +136,7 @@ void tec_zoneDetails::set_solutionTime(double time) {
 	solutionTime = time;
 }
 
-void tec_zoneDetails::set_varDT(int vidx, dataTypeFlag type, bool push) {
+void tec_zoneDetails::set_varDT(int vidx, int32_t type, bool push) {
 	if(vidx < nVars) {
 		zone_varDTs[vidx] = type;
 	}
@@ -171,7 +171,8 @@ void tec_zoneDetails::set_sharedVar(int vidx, int32_t zidx, bool push) {
 	}
 	else {
 		if(push) {
-			zone_sharedVars.push_back(zidx);
+			zone_sharedVars.resize(vidx);
+			zone_sharedVars[vidx] = zidx;
 			nVars = vidx;
 			if(zidx && !hasSharedVars) {
 				hasSharedVars = true;
@@ -183,16 +184,16 @@ void tec_zoneDetails::set_sharedVar(int vidx, int32_t zidx, bool push) {
 	}
 }
 
-void tec_zoneDetails::set_passiveVar(int vidx, passiveVarFlag flag, bool push) {
+void tec_zoneDetails::set_passiveVar(int vidx, bool flag, bool push) {
 	if(vidx < nVars) {
 		zone_passiveVars[vidx] = flag;
-		if(flag == passiveVarFlag::passive && !hasPassiveVars) {
+		if(flag && !hasPassiveVars) {
 			hasPassiveVars = true;	
 		}
-		else if(flag == passiveVarFlag::nonpassive && hasPassiveVars) {
+		else if(!flag && hasPassiveVars) {
 			//check to see if other passive vars exist before changing flag
 			for(int v = 0; v < nVars; v++) {
-				if(zone_passiveVars[v] == passiveVarFlag::passive) {
+				if(zone_passiveVars[v]) {
 					break;
 				}
 				else if(v+1 == nVars) {
@@ -203,9 +204,10 @@ void tec_zoneDetails::set_passiveVar(int vidx, passiveVarFlag flag, bool push) {
 	}
 	else {
 		if(push) {
-			zone_passiveVars.push_back(flag);
+			zone_passiveVars.resize(vidx);
+			zone_passiveVars[vidx] = flag;
 			nVars = vidx;
-			if((bool)flag && !hasPassiveVars) {
+			if(flag && !hasPassiveVars) {
 				hasPassiveVars = true;
 			}
 		}
@@ -254,18 +256,26 @@ int tec_zoneDetails::get_Kmax() {
 	return K;
 }
 
-std::vector<dataTypeFlag>* tec_zoneDetails::get_varDTs() {
+std::unique_ptr<std::vector<int32_t>> tec_zoneDetails::get_varDTs() {
 	if(!zone_varDTs.size()) {
 		throw tec_containerError("variable type vector is empty!");
 	}
-	return &zone_varDTs;
+	return std::make_unique<std::vector<int32_t>>(zone_varDTs);
 }
 
-std::vector<int32_t>* tec_zoneDetails::get_sharedList() {
+std::unique_ptr<std::vector<int32_t>> tec_zoneDetails::get_sharedList() {
 	if(!zone_varDTs.size()) {
 		return NULL;
 	}
-	return &zone_sharedVars;
+	return std::make_unique<std::vector<int32_t>>(zone_sharedVars);
+}
+
+std::unique_ptr<std::vector<bool>>  tec_zoneDetails::get_passiveList() {
+	if(!zone_varDTs.size()) {
+		return NULL;
+	}
+	return std::make_unique<std::vector<bool>>(zone_passiveVars);
+
 }
 
 
@@ -810,6 +820,12 @@ void tec_fileContent::print_zoneData(int zidx) {
 			v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
 			continue;
 		}
+		else if(zoneDetails[zidx].zone_passiveVars[v]) {
+			std::cout << "PASSIVE)";
+			//ternary operator to determine if at the end of the variable list or not
+			v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+			continue;
+		}
 		switch(variables[v][zidx].T) {
 			case dataTypeFlag::singlePrecision:
 				std::cout << "SINGLE";
@@ -843,6 +859,13 @@ void tec_fileContent::print_zoneData(int zidx) {
 				v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
 				continue;
 			}
+			else if(zoneDetails[zidx].zone_passiveVars[v]) {
+				if(!v) {
+					continue;
+				}
+				v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+				continue;
+			}
 			switch(variables[v][zidx].T) {
 				case dataTypeFlag::singlePrecision:
 					std::cout << variables[v][zidx].get_float(i);
@@ -870,14 +893,36 @@ void tec_fileContent::print_zoneData(int zidx) {
 
 void tec_fileContent::print_fileDetails(bool include_data) {
 	print_headerDetails();
-	std::cout << std::endl;	
+	std::cout << "\n" << std::endl;	
 	for(int z = 0; z < zoneDetails.size(); z++) {
 		print_zoneDetails(z);
-		std::cout << std::endl;	
+		std::cout << "\n" << std::endl;	
 		if(include_data) {
 			print_zoneData(z);
-			std::cout << std::endl;	
+			if(z+1 < zoneDetails.size()) {
+			 	std::cout << "\n" << std::endl;	
+			}
 		}
 	}
+}
 
+void tec_fileContent::operator[](int vidx) {
+	std::cout << "variable name at " << vidx << " is " << variables[vidx].name << std::endl;
+}
+
+void tec_fileContent::operator[](std::string vname) {
+	try {
+		int vidx = var_map.at(vname);
+		std::cout << "variable name given key " << vname << " is " << variables[vidx].name << std::endl;
+	}
+
+	catch(std::out_of_range const& e) {
+		std::cout << "The variable key \"" << vname << "\" does not correspond to the name any variable" << std::endl;
+		std::cout << "Please using one of the following names as a key or the corrsponding index number:" << std::endl;
+		for(int v = 0; v < variables.size(); v++) {
+			std::cout << v << ": ";
+			std::cout << variables[v].name << std::endl;
+		}
+	}
+	
 }

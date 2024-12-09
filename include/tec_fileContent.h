@@ -60,32 +60,23 @@ enum class zoneTypeFlag : char {
 
 class tec_zoneDetails {
 	friend class tec_fileContent;
-	
-	int nVars;
+	friend class tec_asciiReader;
 
-	int I, J, K;
-	formattingFlag dataPacking;
-	zoneTypeFlag zoneType;
-	std::string zoneTitle;
+	private:
+		int nVars;
+		int I, J, K;
+		formattingFlag dataPacking;
+		zoneTypeFlag zoneType;
+		std::string zoneTitle;
+		int strandID;
+		double solutionTime;
+		std::vector<int32_t> zone_varDTs;
+		std::vector<int32_t> zone_sharedVars;
+		std::vector<bool> zone_passiveVars;
 
-	int strandID;
-	double solutionTime;
+		bool hasSharedVars;
+		bool hasPassiveVars;
 
-	bool hasSharedVars;
-	bool hasPassiveVars;
-
-	std::vector<dataTypeFlag> zone_varDTs;
-	std::vector<int32_t> zone_sharedVars;
-	std::vector<passiveVarFlag> zone_passiveVars;
-	
-	public:
-		tec_zoneDetails(int zid, size_t vars);
-		tec_zoneDetails(tec_zoneDetails &obj);
-		tec_zoneDetails(tec_zoneDetails &&obj);
-		~tec_zoneDetails();
-
-		const int zoneID;
-		
 		void set_formatType(char formattingType);
 		void set_zoneType(char type);
 		void set_zoneTitle(std::string title);
@@ -94,9 +85,17 @@ class tec_zoneDetails {
 		void set_solutionTime(double time);
 
 		void set_sharedVar(int vidx, int32_t zidx, bool push = false);
-		void set_passiveVar(int vidx, passiveVarFlag flag, bool push = false);
-		void set_varDT(int vidx, dataTypeFlag type, bool push =  false);
+		void set_passiveVar(int vidx, bool flag, bool push = false);
+		void set_varDT(int vidx, int32_t type, bool push =  false);
 
+	public:
+		tec_zoneDetails(int zid, size_t vars);
+		tec_zoneDetails(tec_zoneDetails &obj);
+		tec_zoneDetails(tec_zoneDetails &&obj);
+		~tec_zoneDetails();
+
+		const int zoneID;
+		
 		formattingFlag get_formattingType();
 		zoneTypeFlag get_zoneType();
 		int get_size();
@@ -104,9 +103,9 @@ class tec_zoneDetails {
 		int get_Jmax();
 		int get_Kmax();
 
-		std::vector<dataTypeFlag>* get_varDTs();
-		std::vector<int32_t>* get_sharedList();
-		//std::vector<passiveVarFlag>* get_passiveList();
+		std::unique_ptr<std::vector<int32_t>> get_varDTs();
+		std::unique_ptr<std::vector<int32_t>> get_sharedList();
+		std::unique_ptr<std::vector<bool>> get_passiveList();
 };
 
 class tec_data {
@@ -208,6 +207,14 @@ class tec_fileContent {
 		void print_zoneDetails(int zidx);
 		void print_zoneData(int zidx);
 		void print_fileDetails(bool include_data=false);
+
+		int get_numZones();
+		int get_numVariables();
+
+
+		void operator[](int vidx);
+		void operator[](std::string vname);
+
 		
 };
 
