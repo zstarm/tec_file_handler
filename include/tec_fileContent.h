@@ -23,199 +23,201 @@
 
 #include "tec_error.h"
 
-enum class fileTypeFlag : char {
-	full = '0',
-	grid = '1',
-	solution = '2'
-};
+namespace tec {
+	enum class fileTypeFlag : char {
+		full = '0',
+		grid = '1',
+		solution = '2'
+	};
 
-enum class dataTypeFlag : int32_t {
-	singlePrecision = 1,
-	doublePrecision = 2,
-	int32 = 3,
-	int16 = 4,
-	byte = 5,
-	bit = 6
-};
+	enum class dataTypeFlag : int32_t {
+		singlePrecision = 1,
+		doublePrecision = 2,
+		int32 = 3,
+		int16 = 4,
+		byte = 5,
+		bit = 6
+	};
+	/*
+	enum class sharedVarFlag : bool {
+		nonshared = false,
+		shared = true
+	};
 
-enum class sharedVarFlag : bool {
-	nonshared = false,
-	shared = true
-};
+	enum class passiveVarFlag : bool {
+		nonpassive = false,
+		passive = true
+	};
+	*/
 
-enum class passiveVarFlag : bool {
-	nonpassive = false,
-	passive = true
-};
+	enum class formattingFlag : char {
+		point,
+		block
+	};
 
-enum class formattingFlag : char {
-	point = '0',
-	block = '1'
-};
+	enum class zoneTypeFlag : char {
+		ordered,
+		FE
+	};
 
-enum class zoneTypeFlag : char {
-	ordered = '0',
-	FE = '1'
-};
+	class zoneDetails {
+		friend class fileContent;
+		friend class asciiReader;
 
-class tec_zoneDetails {
-	friend class tec_fileContent;
-	friend class tec_asciiReader;
+		private:
+			int nVars;
+			int I, J, K;
+			formattingFlag dataPacking;
+			zoneTypeFlag zoneType;
+			std::string zoneTitle;
+			int strandID;
+			double solutionTime;
+			std::vector<int32_t> zone_varDTs;
+			std::vector<int32_t> zone_sharedVars;
+			std::vector<bool> zone_passiveVars;
 
-	private:
-		int nVars;
-		int I, J, K;
-		formattingFlag dataPacking;
-		zoneTypeFlag zoneType;
-		std::string zoneTitle;
-		int strandID;
-		double solutionTime;
-		std::vector<int32_t> zone_varDTs;
-		std::vector<int32_t> zone_sharedVars;
-		std::vector<bool> zone_passiveVars;
+			bool hasSharedVars;
+			bool hasPassiveVars;
 
-		bool hasSharedVars;
-		bool hasPassiveVars;
+			void set_formatType(char formattingType);
+			void set_zoneType(char type);
+			void set_zoneTitle(std::string title);
+			void set_IJKSize(char IJK, int size);
+			void set_strandID(int strand);
+			void set_solutionTime(double time);
 
-		void set_formatType(char formattingType);
-		void set_zoneType(char type);
-		void set_zoneTitle(std::string title);
-		void set_IJKSize(char IJK, int size);
-		void set_strandID(int strand);
-		void set_solutionTime(double time);
+			void set_sharedVar(int vidx, int32_t zidx, bool push = false);
+			void set_passiveVar(int vidx, bool flag, bool push = false);
+			void set_varDT(int vidx, int32_t type, bool push =  false);
 
-		void set_sharedVar(int vidx, int32_t zidx, bool push = false);
-		void set_passiveVar(int vidx, bool flag, bool push = false);
-		void set_varDT(int vidx, int32_t type, bool push =  false);
+		public:
+			zoneDetails(int zid, size_t vars);
+			zoneDetails(zoneDetails &obj);
+			zoneDetails(zoneDetails &&obj);
+			~zoneDetails();
 
-	public:
-		tec_zoneDetails(int zid, size_t vars);
-		tec_zoneDetails(tec_zoneDetails &obj);
-		tec_zoneDetails(tec_zoneDetails &&obj);
-		~tec_zoneDetails();
+			const int zoneID;
+			
+			formattingFlag get_formattingType();
+			zoneTypeFlag get_zoneType();
+			int get_size();
+			int get_Imax();
+			int get_Jmax();
+			int get_Kmax();
 
-		const int zoneID;
+			std::unique_ptr<std::vector<int32_t>> get_varDTs();
+			std::unique_ptr<std::vector<int32_t>> get_sharedList();
+			std::unique_ptr<std::vector<bool>> get_passiveList();
+	};
+
+	class zoneData {
 		
-		formattingFlag get_formattingType();
-		zoneTypeFlag get_zoneType();
-		int get_size();
-		int get_Imax();
-		int get_Jmax();
-		int get_Kmax();
-
-		std::unique_ptr<std::vector<int32_t>> get_varDTs();
-		std::unique_ptr<std::vector<int32_t>> get_sharedList();
-		std::unique_ptr<std::vector<bool>> get_passiveList();
-};
-
-class tec_data {
-	
-	friend class tec_fileContent;
-	
-	private:
-		dataTypeFlag T;
-		std::unique_ptr<std::vector<float>> float_content;
-		std::unique_ptr<std::vector<double>> double_content;
-		std::unique_ptr<std::vector<int32_t>> int32_content;
-		std::unique_ptr<std::vector<int16_t>> int16_content;
-		std::unique_ptr<std::vector<uint8_t>> byte_content;
-
-		void allocate(int size);
-		template <typename DT> void allocate(int size, DT val);
-
-	public:
-		tec_data();
-		tec_data(tec_data& obj);
-		tec_data(tec_data&& obj);
-		tec_data(dataTypeFlag type);
-		tec_data(dataTypeFlag type, int size);
-		tec_data(int size, float val);
-		tec_data(int size, double val);
-		tec_data(int size, int32_t val);
-		tec_data(int size, int16_t val);
-		tec_data(int size, uint8_t val);
-
-		~tec_data();
-
-		template <typename DT> void resize(int new_size, DT val);
-		void resize(int new_size);
-		void push_back(float val);
-		void push_back(double val);
-		void push_back(int32_t val);
-		void push_back(int16_t val);
-		void push_back(uint8_t val);
-
-		dataTypeFlag type();
-		int get_array_size();
-
-		float& get_float(int idx);
-		double& get_double(int idx);
-		int32_t& get_int32(int idx);
-		int16_t& get_int16(int idx);
-		uint8_t& get_byte(int idx);
+		friend class fileContent;
 		
-};
+		private:
+			dataTypeFlag T;
+			std::unique_ptr<std::vector<float>> float_content;
+			std::unique_ptr<std::vector<double>> double_content;
+			std::unique_ptr<std::vector<int32_t>> int32_content;
+			std::unique_ptr<std::vector<int16_t>> int16_content;
+			std::unique_ptr<std::vector<uint8_t>> byte_content;
 
-class tec_variable {
+			void allocate(int size);
+			template <typename DT> void allocate(int size, DT val);
 
-	friend class tec_fileContent;
+		public:
+			zoneData();
+			zoneData(zoneData& obj);
+			zoneData(zoneData&& obj);
+			zoneData(dataTypeFlag type);
+			zoneData(dataTypeFlag type, int size);
+			zoneData(int size, float val);
+			zoneData(int size, double val);
+			zoneData(int size, int32_t val);
+			zoneData(int size, int16_t val);
+			zoneData(int size, uint8_t val);
 
-	friend class tec_asciiReader;
-	friend class tec_asciiWriter;
+			~zoneData();
 
-	//friend class tec_szlReader;
-	//friend class tec_szlWriter;
+			template <typename DT> void resize(int new_size, DT val);
+			void resize(int new_size);
+			void push_back(float val);
+			void push_back(double val);
+			void push_back(int32_t val);
+			void push_back(int16_t val);
+			void push_back(uint8_t val);
+
+			dataTypeFlag type();
+			int get_array_size();
+
+			float& get_float(int idx);
+			double& get_double(int idx);
+			int32_t& get_int32(int idx);
+			int16_t& get_int16(int idx);
+			uint8_t& get_byte(int idx);
+			
+	};
+
+	class variable {
+
+		friend class fileContent;
+
+		friend class asciiReader;
+		friend class asciiWriter;
+
+		//friend class szlReader;
+		//friend class szlWriter;
 
 
-	std::string name;
-	
-	std::vector<tec_data> subzoneData;
-
-	public:
-		tec_variable();
-		tec_variable(std::string vname);
-		tec_variable(tec_variable &obj);
-		tec_variable(tec_variable &&obj);
-		~tec_variable();
-
-		void modify_name(std::string vname);
-		void resize_zone(int zone, int _size, dataTypeFlag T = dataTypeFlag::singlePrecision);
-		tec_data& operator[](int idx); 
-};
-
-class tec_fileContent {
-
-	friend class tec_asciiReader;
-	friend class tec_asciiWriter;
-
-	//friend class tec_szlReader;
-	//friend class tec_szlWriter;
-
-	private:
-		std::string title;
-		fileTypeFlag fType;
-
-		std::vector<tec_variable> variables;
-		std::vector<tec_zoneDetails> zoneDetails; 
-		std::unordered_map<std::string, size_t> var_map;
-
-	public:
-		tec_fileContent();
-		~tec_fileContent();
+		std::string name;
 		
-		void print_headerDetails();
-		void print_zoneDetails(int zidx);
-		void print_zoneData(int zidx);
-		void print_fileDetails(bool include_data=false);
+		std::vector<zoneData> subzoneData;
 
-		int get_numZones();
-		int get_numVariables();
+		public:
+			variable();
+			variable(std::string vname);
+			variable(variable &obj);
+			variable(variable &&obj);
+			~variable();
+
+			void modify_name(std::string vname);
+			void resize_zone(int zone, int _size, dataTypeFlag T = dataTypeFlag::singlePrecision);
+			zoneData& operator[](int idx); 
+	};
+
+	class fileContent {
+
+		friend class asciiReader;
+		friend class asciiWriter;
+
+		//friend class szlReader;
+		//friend class szlWriter;
+
+		private:
+			std::string title;
+			fileTypeFlag fType;
+
+			std::vector<variable> variables;
+			std::vector<zoneDetails> zoneDetails; 
+			std::unordered_map<std::string, size_t> var_map;
+
+		public:
+			fileContent();
+			~fileContent();
+			
+			void print_headerDetails();
+			void print_zoneDetails(int zidx);
+			void print_zoneData(int zidx);
+			void print_fileDetails(bool include_data=false);
+
+			int get_numZones();
+			int get_numVariables();
 
 
-		void operator[](int vidx);
-		void operator[](std::string vname);
+			void operator[](int vidx);
+			void operator[](std::string vname);
+	};
+}
 
-		
-};
 
 #endif 

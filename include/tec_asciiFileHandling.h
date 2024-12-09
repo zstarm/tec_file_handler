@@ -7,40 +7,38 @@
 
 #include <fstream>
 
-//#include <unordered_map>
+namespace tec {
+	class asciiReader {
+		std::string fname;
+		std::ifstream in_fs; 
 
-class tec_asciiReader {
-	std::string fname;
-	std::ifstream in_fs; 
+		asciiFormatter line_formatter;
 
-	tec_asciiFormatter line_formatter;
+		int zoneCounter;
+		int zoneSize;
+		int dataCount;
+		int varCount;
 
-	int zoneCounter;
-	int zoneSize;
-	int dataCount;
-	int varCount;
+		void parse_headerLine(std::string &line, fileContent &dataContainer);
+		void parse_zoneLine(std::string &line, fileContent &dataContainer);
+		void preprocess_data(std::string &line, fileContent &dataContainer);
 
-	void parse_headerLine(std::string &line, tec_fileContent &dataContainer);
-	void parse_zoneLine(std::string &line, tec_fileContent &dataContainer);
-	void preprocess_data(std::string &line, tec_fileContent &dataContainer);
+		void parse_pointFormatData(std::string &line, fileContent &dataContainer); 
+		void parse_blockFormatData(std::string &line, fileContent &dataContainer); 
 
-	void parse_pointFormatData(std::string &line, tec_fileContent &dataContainer); 
-	void parse_blockFormatData(std::string &line, tec_fileContent &dataContainer); 
+		void parse_dataTypeList(size_t& pos_tmp, std::string& field, fileContent &dataContainer);
+		void parse_shareList(size_t& pos_tmp, std::string& field, fileContent &dataContainer);
+		void parse_passiveList(size_t& pos_tmp, std::string& field, fileContent &dataContainer);
+		
 
-	void parse_dataTypeList(size_t& pos_tmp, std::string& field, tec_fileContent &dataContainer);
-	void parse_shareList(size_t& pos_tmp, std::string& field, tec_fileContent &dataContainer);
-	void parse_passiveList(size_t& pos_tmp, std::string& field, tec_fileContent &dataContainer);
-	
+		public:
+			asciiReader();
+			asciiReader(std::string _fname);
+			asciiReader(const char* _fname);
+			~asciiReader();
 
-	public:
-		tec_asciiReader();
-		tec_asciiReader(std::string _fname);
-		tec_asciiReader(const char* _fname);
-		~tec_asciiReader();
-
-		void read_file(tec_fileContent &dataContainer);
-		void read_file(std::string _fname, tec_fileContent &dataContainer);
-
-};
-
+			void read_file(fileContent &dataContainer);
+			void read_file(std::string _fname, fileContent &dataContainer);
+	};
+}
 #endif

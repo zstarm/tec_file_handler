@@ -1,21 +1,22 @@
 #include "tec_error.h"
+namespace tec {
+	asciiReaderError::asciiReaderError() : error_msg("No message provided") {}
 
-tec_asciiReaderError::tec_asciiReaderError() : error_msg("No message provided") {}
+	asciiReaderError::asciiReaderError(const char* msg) : error_msg(msg) {}
 
-tec_asciiReaderError::tec_asciiReaderError(const char* msg) : error_msg(msg) {}
+	asciiReaderError::asciiReaderError(std::string msg) : error_msg(msg) {}
 
-tec_asciiReaderError::tec_asciiReaderError(std::string msg) : error_msg(msg) {}
+	const std::string& asciiReaderError::what() const noexcept {
+		return error_msg;
+	}
 
-const std::string& tec_asciiReaderError::what() const noexcept {
-	return error_msg;
-}
+	containerError::containerError() : error_msg("No message provided") {}
 
-tec_containerError::tec_containerError() : error_msg("No message provided") {}
+	containerError::containerError(const char* msg) : error_msg(msg) {}
 
-tec_containerError::tec_containerError(const char* msg) : error_msg(msg) {}
+	containerError::containerError(std::string msg) : error_msg(msg) {}
 
-tec_containerError::tec_containerError(std::string msg) : error_msg(msg) {}
-
-const std::string& tec_containerError::what() const noexcept {
-	return error_msg;
+	const std::string& containerError::what() const noexcept {
+		return error_msg;
+	}
 }
