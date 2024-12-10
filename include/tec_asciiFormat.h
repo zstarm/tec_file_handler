@@ -22,7 +22,7 @@ namespace tec {
 			bool check_orphan_var(std::string &line, const char* delim = ",");
 			bool check_invalidLine(std::string &line);
 
-			int format_auto(std::string &line, const char* delim = ",", const char* separator = "\n");
+			int format_auto(std::string &line, bool skipDataLines=false, const char* delim = ",", const char* separator = "\n");
 
 	};
 }

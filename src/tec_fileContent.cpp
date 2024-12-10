@@ -138,14 +138,23 @@ namespace tec {
 		solutionTime = time;
 	}
 
-	void zoneDetails::set_varDT(int vidx, int32_t type, bool push) {
+	void zoneDetails::set_varDT(int vidx, int32_t type, int resize) {
 		if(vidx < nVars) {
 			zone_varDTs[vidx] = type;
 		}
 		else {
-			if(push) {
-				zone_varDTs.push_back(type);
-				nVars = vidx;
+			if(resize) {
+				zone_varDTs.resize(resize, 1);
+				if(zone_sharedVars.size() != resize) {
+					//resize the zone shared variables as well to 0 (nonshared variable id)
+					zone_sharedVars.resize(resize, 0);
+				}
+				if(zone_passiveVars.size() != resize) {
+					//resize the zone passive variables as well to 0 (active variable id)
+					zone_passiveVars.resize(resize, 0);
+				}
+				zone_varDTs[vidx] = type;
+				nVars = resize;
 			}
 			else {
 				throw containerError("variable index is out of range for setting data type!");
@@ -153,7 +162,7 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_sharedVar(int vidx, int32_t zidx, bool push) {
+	void zoneDetails::set_sharedVar(int vidx, int32_t zidx, int resize) {
 		if(vidx < nVars) {
 			zone_sharedVars[vidx] = zidx;
 			if(zidx && !hasSharedVars) {
@@ -172,10 +181,18 @@ namespace tec {
 			}
 		}
 		else {
-			if(push) {
-				zone_sharedVars.resize(vidx);
+			if(resize) {
+				zone_sharedVars.resize(resize, 0);
+				if(zone_passiveVars.size() != resize) {
+					//resize the zone passive variables as well to 0 (active variable id)
+					zone_passiveVars.resize(resize, 0);
+				}
+				if(zone_varDTs.size() != resize) {
+					//resize the zone var DT vector as well to 1 (single precision id)
+					zone_varDTs.resize(resize, 1);
+				}
 				zone_sharedVars[vidx] = zidx;
-				nVars = vidx;
+				nVars = resize;
 				if(zidx && !hasSharedVars) {
 					hasSharedVars = true;
 				}
@@ -186,7 +203,7 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_passiveVar(int vidx, bool flag, bool push) {
+	void zoneDetails::set_passiveVar(int vidx, bool flag, int resize) {
 		if(vidx < nVars) {
 			zone_passiveVars[vidx] = flag;
 			if(flag && !hasPassiveVars) {
@@ -205,10 +222,18 @@ namespace tec {
 			}
 		}
 		else {
-			if(push) {
-				zone_passiveVars.resize(vidx);
+			if(resize) {
+				zone_passiveVars.resize(resize, false);
+				if(zone_sharedVars.size() != resize) {
+					//resize the shared zone vector as well to 0 (nonshared variable id)
+					zone_sharedVars.resize(resize, 0);
+				}
+				if(zone_varDTs.size() != resize) {
+					//resize the zone var DT vector as well to 1 (single precision id)
+					zone_varDTs.resize(resize, 1);
+				}
 				zone_passiveVars[vidx] = flag;
-				nVars = vidx;
+				nVars = resize;
 				if(flag && !hasPassiveVars) {
 					hasPassiveVars = true;
 				}

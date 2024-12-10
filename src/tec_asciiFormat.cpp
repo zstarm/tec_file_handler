@@ -2,7 +2,6 @@
 
 namespace tec {
 	asciiFormatter::asciiFormatter() {}
-
 	asciiFormatter::~asciiFormatter() {}
 
 	void asciiFormatter::change_pattern(std::string && new_pattern) {
@@ -102,8 +101,13 @@ namespace tec {
 		return false;
 	}
 
-	int asciiFormatter::format_auto(std::string &line, const char* delim, const char* separator) {
-		
+	int asciiFormatter::format_auto(std::string &line, bool skipDataLines, const char* delim, const char* separator) {
+		if(skipDataLines) {
+			if(!check_invalidLine(line)) {
+				return 0;
+			}
+			//std::cout << line << std::endl;	
+		}
 		if(format_header(line, delim, separator)) {
 			return 1; //return header classification
 		}
@@ -113,10 +117,15 @@ namespace tec {
 		else if(check_orphan_var(line)) {
 			return 1; //return header classification
 		}
-		else if(check_invalidLine(line)) {
+		
+		else if(!skipDataLines && check_invalidLine(line)) {
 			return -1; //return invalid line classification
 		}
-
+		/*	
+		if(skipDataLines) {
+			return 0;
+		}
+		*/
 		change_pattern("\\t+"); //change any tabs to single spaces
 		line = std::regex_replace(line, pattern, " "); 
 		change_pattern("^\\s+|\\s(?=\\s+)|\\s$"); //remove any double+ spaces and spaces at the start/end

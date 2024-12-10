@@ -86,9 +86,9 @@ namespace tec {
 			void set_strandID(int strand);
 			void set_solutionTime(double time);
 
-			void set_sharedVar(int vidx, int32_t zidx, bool push = false);
-			void set_passiveVar(int vidx, bool flag, bool push = false);
-			void set_varDT(int vidx, int32_t type, bool push =  false);
+			void set_sharedVar(int vidx, int32_t zidx, int resize = 0);
+			void set_passiveVar(int vidx, bool flag, int resize  = 0);
+			void set_varDT(int vidx, int32_t type, int resize =  0);
 
 		public:
 			zoneDetails(int zid, size_t vars);

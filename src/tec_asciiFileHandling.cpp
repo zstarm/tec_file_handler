@@ -230,11 +230,18 @@ namespace tec {
 				pos_tmp = field.length();
 			}
 			
-			bool pushback_needed = false;
+			int pushback_needed = 0;
 			if(!dataContainer.variables.size()) {
-				//if the number of variables is unknown push back instances of vars
-				dataContainer.variables.push_back("V"+std::to_string(varCount+1));
-				pushback_needed = true;
+				//if the number of variables is currently unknown push back number of commas+1  
+				//instances of vars (should only run if first zone and first list entry)
+				std::for_each(field.begin(),field.end(), [&varCount = varCount, &dataContainer = dataContainer](char c) {
+						if(c == ',') {
+							dataContainer.variables.push_back("V"+std::to_string(++varCount));
+						}});
+				
+				dataContainer.variables.push_back("V"+std::to_string(++varCount));
+				pushback_needed = varCount;
+				varCount = 0;
 			}
 			tmp_char = std::toupper(field[0]);
 			if(tmp_char == 'D') {
@@ -284,7 +291,7 @@ namespace tec {
 	}
 
 	void asciiReader::parse_shareList(size_t& pos_tmp, std::string& field, fileContent &dataContainer) {
-		if(dataContainer.variables.size()) {
+		if(dataContainer.variables.size() && zoneCounter != 1) {
 			bool keep_parsing = true;
 			while(keep_parsing) {
 				if(field[0] == '[') {
@@ -410,6 +417,7 @@ namespace tec {
 	}
 
 	void asciiReader::preprocess_data(std::string &line, fileContent &dataContainer) {
+		
 		if(!zoneCounter) {
 			//if no zone header was encountered, create a single zone
 			zoneCounter++; 
@@ -494,8 +502,9 @@ namespace tec {
 				
 				type = dataContainer.variables[v][zoneCounter-1].type(); //get data type of current variable
 				//extract single data entry in the file
-				pos = line.find(' ');
+				pos = line.find_first_of(" \t", line.find_first_not_of(" \t"));
 				entry = line.substr(0, pos);
+				
 				if(pos == std::string::npos) {
 					line.erase(0);
 				}
@@ -599,16 +608,20 @@ namespace tec {
 				//push back a variable with default settings
 				dataContainer.variables.push_back("V" + std::to_string(++nVars));
 				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 1, true);
-				pos = line.find(' ');
+				
+				pos = line.find_first_of(" \t", line.find_first_not_of(" \t"));
+				entry = line.substr(0, pos);
+				pos = line.find_first_not_of(" \t");
 				if(pos == std::string::npos) {
 					repeat = false;
-					entry = line;
+					//entry = line;
 					line.erase(0);
 				}
 				else {
-					entry = line.substr(0, pos);
-					line.erase(0,pos+1);
+					//entry = line.substr(0, pos);
+					line.erase(0,pos);
 				}
+				
 				//no type checking is required as default type is "float/single" 
 				if(!dataCount && zoneSize) {
 					dataContainer.variables[nVars-1].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
@@ -628,6 +641,13 @@ namespace tec {
 	void asciiReader::parse_blockFormatData(std::string &line, fileContent &dataContainer) {
 		std::unique_ptr<std::vector<int32_t>> sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
 		std::unique_ptr<std::vector<bool>> passiveList = dataContainer.zoneDetails[zoneCounter-1].get_passiveList();
+		
+		if(dataCount == zoneSize) {
+			//if the total number of data points has been read for the variable
+			//reset dataCount and move on to reading the next variable
+			varCount++;
+			dataCount = 0;
+		}
 		while((*sharedList)[varCount] || (*passiveList)[varCount]) {
 			//if the current variable is a shared or passive variable, move to the next variable
 			//countinue loop until a nonshared variable is found or all variables are checked
@@ -636,12 +656,6 @@ namespace tec {
 				break; //break loop if the varCount exceeds the number of variables in file
 			}
 		}
-		if(dataCount == zoneSize) {
-			//if the total number of data points has been read for the variable
-			//reset dataCount and move on to reading the next variable
-			varCount++;
-			dataCount = 0;
-		}
 		while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
 			//push back a subzoneData instance to match zone counter of reader
 			//should only occur if the data type for zone was not specified
@@ -649,7 +663,6 @@ namespace tec {
 		}
 		dataTypeFlag type;
 		type = dataContainer.variables[varCount][zoneCounter-1].type(); //get data type of current variable
-		
 		if(!dataCount) {
 			//if at the start of reading new variable, allocate space for desired datatype
 			switch(type) {
@@ -682,7 +695,7 @@ namespace tec {
 		size_t pos;
 		bool repeat = true;
 		while(repeat) {
-			pos = line.find(' ');
+			pos = line.find_first_of(" \t", line.find_first_not_of(" \t"));
 			entry = line.substr(0, pos);
 			line.erase(0,pos+1);
 			if(pos == std::string::npos) {
@@ -725,8 +738,13 @@ namespace tec {
 					int lineCounter = 0;
 					while(!in_fs.eof()) {
 						std::getline(in_fs, file_line);
+						/*
+						if(!(lineCounter % 10000)) {
+							std::cout << lineCounter << std::endl;
+						}
+						*/
 						if(!file_line.empty()) {
-							int lineType = line_formatter.format_auto(file_line);
+							int lineType = line_formatter.format_auto(file_line, true);
 							switch(lineType) {
 								case 0:
 									preprocess_data(file_line, dataContainer);
@@ -740,6 +758,7 @@ namespace tec {
 								default:
 									std::cout << "WARNIING!: a line with invalid formating was encountered on line number: " << lineCounter+1 << std::endl;
 							}
+							
 						}
 						lineCounter++;
 					}
