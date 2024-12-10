@@ -24,10 +24,10 @@
 #include "tec_error.h"
 
 namespace tec {
-	enum class fileTypeFlag : char {
-		full = '0',
-		grid = '1',
-		solution = '2'
+	enum class fileTypeFlag : int32_t {
+		full = 0,
+		grid = 1,
+		solution = 2
 	};
 
 	enum class dataTypeFlag : int32_t {
@@ -35,9 +35,10 @@ namespace tec {
 		doublePrecision = 2,
 		int32 = 3,
 		int16 = 4,
-		byte = 5,
-		bit = 6
+		byte = 5
+		//bit = 6
 	};
+
 	/*
 	enum class sharedVarFlag : bool {
 		nonshared = false,
@@ -55,14 +56,21 @@ namespace tec {
 		block
 	};
 
-	enum class zoneTypeFlag : char {
-		ordered,
-		FE
+	enum class zoneTypeFlag : uint8_t {
+		ordered = 0,
+		FEline = 1,
+		FEtri = 2,
+		FEquad = 3,
+		FEtet = 4,
+		FEbrick = 5,
+		FEpolygon = 6,
+		FEpolyhedron = 7
 	};
 
 	class zoneDetails {
 		friend class fileContent;
 		friend class asciiReader;
+		friend class szlReader;
 
 		private:
 			int nVars;
@@ -92,6 +100,7 @@ namespace tec {
 
 		public:
 			zoneDetails(int zid, size_t vars);
+			zoneDetails(int zid, int vars);
 			zoneDetails(zoneDetails &obj);
 			zoneDetails(zoneDetails &&obj);
 			~zoneDetails();
@@ -190,7 +199,7 @@ namespace tec {
 		friend class asciiReader;
 		friend class asciiWriter;
 
-		//friend class szlReader;
+		friend class szlReader;
 		//friend class szlWriter;
 
 		private:

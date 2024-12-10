@@ -20,6 +20,21 @@ namespace tec {
 
 	}
 
+	zoneDetails::zoneDetails(int zid, int vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
+		zoneType = zoneTypeFlag::ordered; 
+		dataPacking = formattingFlag::point;
+		I = 0;
+		J = 0;
+		K = 0;
+		strandID = 0;
+		solutionTime = 0.0;
+
+		zone_sharedVars.resize(nVars);
+		zone_passiveVars.resize(nVars);
+		zone_varDTs.resize(nVars);
+
+	}
+	
 	zoneDetails::~zoneDetails() {
 	}
 
@@ -113,7 +128,8 @@ namespace tec {
 		}
 
 		else if(type == 'F' || type == 'f') {
-			zoneType = zoneTypeFlag::FE;
+			//zoneType = zoneTypeFlag::FE;
+			throw containerError("FINITE ELEMENT ZONES ARE NOT SUPPORTED");
 		}
 		else {
 			std::cout << "ERROR!: Unrecognized zone type for set_zoneType, current zone type is set to ";
