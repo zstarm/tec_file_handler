@@ -130,6 +130,7 @@ namespace tec {
 			tmpCharPtr = NULL;
 			err = tecVarGetName(szlFileHandle, v+1, &tmpCharPtr);	 
 			dataContainer.variables.push_back(std::string(tmpCharPtr)); //var names
+			dataContainer.var_map[std::string(tmpCharPtr)] = v;		
 		}
 	
 		int32_t tmpType;
