@@ -5,6 +5,10 @@ cmake_minimum_required(VERSION 3.10)
 #project details
 project("Tecplot File Handling Library" VERSION 0.1)
 
+if(${APPLE})
+	set(CMAKE_OSX_DEPLOYMENT_TARGET 14.0)
+endif()
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
