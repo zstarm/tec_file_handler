@@ -1,5 +1,9 @@
+#custom specified files
 testing.cpp
 test
+run_test
+4DPTV_E11_spectrum_JFM_102124_BW.dat
+tecio/*
 
 # Prerequisites
 *.d
@@ -52,5 +56,3 @@ build/*
 out/*
 .vs
 *.swp
-run_test
-4DPTV_E11_spectrum_JFM_102124_BW.dat
