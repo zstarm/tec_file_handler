@@ -1,12 +1,11 @@
 #include "tec_fileContent.h"
 
 namespace tec {
-	//----------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------
 	// TECPLOT ZONE DETAILS
-	//----------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------
 
-	zoneDetails::zoneDetails(int zid, size_t vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
-		zoneType = zoneTypeFlag::ordered; 
+	zoneDetails::zoneDetails(int zid, size_t vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) { zoneType = zoneTypeFlag::ordered; 
 		dataPacking = formattingFlag::point;
 		I = 0;
 		J = 0;
@@ -18,7 +17,6 @@ namespace tec {
 		zone_passiveVars.resize(nVars);
 		zone_varDTs.resize(nVars,1); //default to Float DT
 		zone_varLoc.resize(nVars,1); //default to nodal location
-
 	}
 
 	zoneDetails::zoneDetails(int zid, int vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
@@ -29,11 +27,14 @@ namespace tec {
 		K = 0;
 		strandID = 0;
 		solutionTime = 0.0;
+		nFaceConns = 0;
+		faceConnectMode = faceConnMode::localone2one;
+		shareConnZone = 0;
 
 		zone_sharedVars.resize(nVars);
 		zone_passiveVars.resize(nVars);
-		zone_varDTs.resize(nVars);
-
+		zone_varDTs.resize(nVars,1); //default to Float DT
+		zone_varLoc.resize(nVars,1); //default to nodal location
 	}
 	
 	zoneDetails::~zoneDetails() {
@@ -53,11 +54,16 @@ namespace tec {
 
 		strandID = obj.strandID;
 		solutionTime = obj.solutionTime;
+		
+		nFaceConns = obj.nFaceConns;
+		faceConnectMode = obj.faceConnectMode;
+		shareConnZone = obj.shareConnZone;
 
 		hasSharedVars = obj.hasSharedVars;
 		hasPassiveVars = obj.hasPassiveVars;
 
 		zone_varDTs = obj.zone_varDTs;
+		zone_varLoc = obj.zone_varLoc;
 		zone_sharedVars = obj.zone_sharedVars;
 		zone_passiveVars = obj.zone_passiveVars;
 
@@ -78,10 +84,15 @@ namespace tec {
 		strandID = std::move(obj.strandID);
 		solutionTime = std::move(obj.solutionTime);
 		
+		nFaceConns = std::move(obj.nFaceConns);
+		faceConnectMode = std::move(obj.faceConnectMode);
+		shareConnZone = std::move(obj.shareConnZone);
+		
 		hasSharedVars = std::move(obj.hasSharedVars);
 		hasPassiveVars = std::move(obj.hasPassiveVars);
 
 		zone_varDTs = std::move(obj.zone_varDTs);
+		zone_varLoc = std::move(obj.zone_varLoc);
 		zone_sharedVars = std::move(obj.zone_sharedVars);
 		zone_passiveVars = std::move(obj.zone_passiveVars);
 	}
@@ -105,14 +116,14 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_faceConnections(int64_t numConnections, std::vector<int32_t> &faceConnects) {
-		nFaceConnections = numConnections;
-		int32_faceConnections = std::make_unique<std::vector<int32_t>>(std::move(faceConnects));
+	void zoneDetails::set_faceConns(int64_t numConnections, std::vector<int32_t> &faceConnects) {
+		nFaceConns = numConnections;
+		int32_faceConns = std::make_unique<std::vector<int32_t>>(std::move(faceConnects));
 	}
 	
-	void zoneDetails::set_faceConnections(int64_t numConnections, std::vector<int64_t> &faceConnects) {
-		nFaceConnections = numConnections;
-		int64_faceConnections = std::make_unique<std::vector<int64_t>>(std::move(faceConnects));
+	void zoneDetails::set_faceConns(int64_t numConnections, std::vector<int64_t> &faceConnects) {
+		nFaceConns = numConnections;
+		int64_faceConns = std::make_unique<std::vector<int64_t>>(std::move(faceConnects));
 	}
 	
 	void zoneDetails::set_formatType(char formattingType) {
@@ -153,12 +164,12 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_faceConnectionMode(int32_t mode) {
-		faceConnectMode = (faceConnectionMode)mode;
+	void zoneDetails::set_faceConnectMode(int32_t mode) {
+		faceConnectMode = (faceConnMode)mode;
 	}
 	
-	void zoneDetails::set_shareConnectivityZone(int32_t shareZone) {
-		shareConnectivityZone = shareZone;
+	void zoneDetails::set_shareConnZone(int32_t shareZone) {
+		shareConnZone = shareZone;
 	}
 
 	void zoneDetails::set_zoneTitle(std::string title) {
@@ -203,7 +214,7 @@ namespace tec {
 
 	void zoneDetails::set_varLoc(int vidx, int32_t loc, int resize) {
 		if(vidx < nVars) {
-			zone_varDTs[vidx] = loc;
+			zone_varLoc[vidx] = loc;
 		}
 		else {
 			if(resize) {
@@ -331,18 +342,41 @@ namespace tec {
 		return zoneTitle;
 	}
 
-	int zoneDetails::get_size() {
+	int64_t zoneDetails::get_numFaceConns() {
+		return nFaceConns;
+	}
+
+	int32_t zoneDetails::get_shareConnZone() {
+		return shareConnZone;
+	}
+
+	faceConnMode zoneDetails::get_faceConnectMode() {
+		return faceConnectMode;
+	}
+
+	int32_t zoneDetails::get_strandID() {
+		return strandID;
+	}
+
+	double zoneDetails::get_solutionTime() {
+		return solutionTime;
+	}
+
+	int zoneDetails::get_size(bool node) {
 		if(I || J || K) {
 			int s = 1;
 
-			if(I) {
-				s *= I;
+			if(I > 1) {
+				//if at node use I, if cell centered, get I-1
+				node ? s*= I : s*= (I-1);
 			}
-			if(J) {
-				s *= J;
+			if(J > 1) {
+				//if at node use J, if cell centered, get J-1
+				node ? s*= J : s*= (J-1);
 			}
-			if(K) {
-				s *= K;
+			if(K > 1) {
+				//if at node use K, if cell centered, get K-1
+				node ? s*= K : s*= (K-1);
 			}
 
 			return s;
@@ -350,15 +384,15 @@ namespace tec {
 		return 0;
 	}
 
-	int zoneDetails::get_Imax() {
+	int64_t zoneDetails::get_Imax() {
 		return I;
 	}
 
-	int zoneDetails::get_Jmax() {
+	int64_t zoneDetails::get_Jmax() {
 		return J;
 	}
 
-	int zoneDetails::get_Kmax() {
+	int64_t zoneDetails::get_Kmax() {
 		return K;
 	}
 
@@ -378,16 +412,17 @@ namespace tec {
 
 	std::unique_ptr<std::vector<int32_t>>  zoneDetails::get_locationList() {
 		if(!zone_varLoc.size()) {
+			std::cout << "no size" << std::endl;
 			return NULL;
 		}
 		return std::make_unique<std::vector<int32_t>>(zone_varLoc);
 	}
 	
-	std::unique_ptr<std::vector<bool>>  zoneDetails::get_passiveList() {
+	std::unique_ptr<std::vector<int32_t>>  zoneDetails::get_passiveList() {
 		if(!zone_passiveVars.size()) {
 			return NULL;
 		}
-		return std::make_unique<std::vector<bool>>(zone_passiveVars);
+		return std::make_unique<std::vector<int32_t>>(zone_passiveVars);
 	}
 
 	//----------------------------------------------------------------------------------------------
@@ -736,6 +771,7 @@ namespace tec {
 
 		return 0;
 	}
+	
 	float& zoneData::get_float(int idx) {
 		if(float_content) {
 			if(idx < (*float_content).size()) {
@@ -796,10 +832,9 @@ namespace tec {
 		throw containerError("no byte data is allocated when trying to retrieve byte data");
 	}
 
-
-	//----------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------
 	// TECPLOT VARIABLE
-	//----------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------
 	variable::variable() : name("V") {}
 
 	variable::variable(std::string vname) : name(vname) {}
@@ -857,9 +892,9 @@ namespace tec {
 	}
 
 
-	//----------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------
 	// TECPLOT FILE CONTENT
-	//----------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------
 	fileContent::fileContent() : fType(fileTypeFlag::full), title("N/A") {}
 
 	fileContent::~fileContent() {}
@@ -943,22 +978,28 @@ namespace tec {
 			}
 			switch(variables[v][zidx].T) {
 				case dataTypeFlag::singlePrecision:
-					std::cout << "SINGLE";
+					std::cout << "SINGLE, ";
 					break;
 				case dataTypeFlag::doublePrecision:
-					std::cout << "DOUBLE";
+					std::cout << "DOUBLE, ";
 					break;
 				case dataTypeFlag::int32:
-					std::cout << "LONGINT";
+					std::cout << "LONGINT, ";
 					break;
 				case dataTypeFlag::int16:
-					std::cout << "SHORTINT";
+					std::cout << "SHORTINT, ";
 					break;
 				case dataTypeFlag::byte:
-					std::cout << "BYTE";
+					std::cout << "BYTE, ";
 					break;
 				default:
 					throw containerError("issue getting data type for variable: " + variables[v].name + " at zone" + std::to_string(zidx) + " to display");
+			}
+			if(zoneDetails[zidx].zone_varLoc[v]) {
+				std::cout << "NODE";
+			}
+			else {
+				std::cout << "CELLCENTER";
 			}
 			std::cout << ")";
 			//ternary operator to determine if at the end of the variable list or not
@@ -981,6 +1022,19 @@ namespace tec {
 					v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
 					continue;
 				}
+				
+				if(!zoneDetails[zidx].zone_varLoc[v]) {
+					//if cell centered make sure index isn't above number of cell values
+					int nCells = zoneDetails[zidx].get_size(false);
+					if(i >= nCells) {
+						if(!v) {
+							continue;
+						}
+						v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+						continue;
+					}
+				}
+				
 				switch(variables[v][zidx].T) {
 					case dataTypeFlag::singlePrecision:
 						std::cout << variables[v][zidx].get_float(i);
@@ -1014,9 +1068,7 @@ namespace tec {
 			std::cout << "\n" << std::endl;	
 			if(include_data) {
 				print_zoneData(z);
-				if(z+1 < zoneDetails.size()) {
-					std::cout << "\n" << std::endl;	
-				}
+				std::cout << "\n" << std::endl;	
 			}
 		}
 	}
@@ -1041,5 +1093,4 @@ namespace tec {
 		}
 		
 	}
-
 }

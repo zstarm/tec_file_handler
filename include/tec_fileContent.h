@@ -39,7 +39,7 @@ namespace tec {
 		//bit = 6
 	};
 
-	enum class faceConnectionMode : int32_t {
+	enum class faceConnMode : int32_t {
 		localone2one = 0,
 		localone2many = 1,
 		globalone2one = 2,
@@ -72,31 +72,31 @@ namespace tec {
 		private:
 			int nVars;
 
-			int64_t I, J, K, nFaceConnections;
+			int64_t I, J, K, nFaceConns;
 			formattingFlag dataPacking;
 			zoneTypeFlag zoneType;
-			faceConnectionMode faceConnectMode;
+			faceConnMode faceConnectMode;
 			std::string zoneTitle;
-			int32_t strandID, shareConnectivityZone;
+			int32_t strandID, shareConnZone;
 			double solutionTime;
 			
 			std::vector<int32_t> zone_varDTs;
 			std::vector<int32_t> zone_varLoc;
 			std::vector<int32_t> zone_sharedVars;
-			std::vector<bool> zone_passiveVars;
+			std::vector<int32_t> zone_passiveVars;
 
-			std::unique_ptr<std::vector<int32_t>> int32_faceConnections;
-			std::unique_ptr<std::vector<int64_t>> int64_faceConnections;
+			std::unique_ptr<std::vector<int32_t>> int32_faceConns;
+			std::unique_ptr<std::vector<int64_t>> int64_faceConns;
 			
 			bool hasSharedVars;
 			bool hasPassiveVars;
 
 			void set_formatType(char formattingType);
 			void set_zoneType(char type);
-			void set_faceConnectionMode(int32_t mode);
-			void set_faceConnections(int64_t numConnections, std::vector<int32_t> &faceConnects);
-			void set_faceConnections(int64_t numConnections, std::vector<int64_t> &faceConnects);
-			void set_shareConnectivityZone(int32_t shareZone);
+			void set_faceConnectMode(int32_t mode);
+			void set_faceConns(int64_t numConnections, std::vector<int32_t> &faceConnects);
+			void set_faceConns(int64_t numConnections, std::vector<int64_t> &faceConnects);
+			void set_shareConnZone(int32_t shareZone);
 			void set_zoneTitle(std::string title);
 			void set_IJKSize(char IJK, int size);
 			void set_strandID(int strand);
@@ -116,21 +116,23 @@ namespace tec {
 
 			const int zoneID;
 			
+			std::string get_zoneTitle();
 			formattingFlag get_formattingType();
 			zoneTypeFlag get_zoneType();
-			//faceConnectionMode get_faceConnectionMode();
-			//int64_t get_numFaceConnections();
-			//int32_t get_shareConnectivityZone();
-			std::string get_zoneTitle();
-			int get_size();
-			int get_Imax();
-			int get_Jmax();
-			int get_Kmax();
+			faceConnMode get_faceConnectMode();
+			int64_t get_numFaceConns();
+			int32_t get_shareConnZone();
+			int32_t get_strandID();
+			double get_solutionTime();
+			int get_size(bool node = true);
+			int64_t get_Imax();
+			int64_t get_Jmax();
+			int64_t get_Kmax();
 
 			std::unique_ptr<std::vector<int32_t>> get_varDTs();
 			std::unique_ptr<std::vector<int32_t>> get_sharedList();
 			std::unique_ptr<std::vector<int32_t>> get_locationList();
-			std::unique_ptr<std::vector<bool>> get_passiveList();
+			std::unique_ptr<std::vector<int32_t>> get_passiveList();
 	};
 
 	class zoneData {

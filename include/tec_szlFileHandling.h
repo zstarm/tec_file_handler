@@ -30,6 +30,10 @@ namespace tec {
 	class szlWriter {
 		std::string fname;
 		void* szlFileHandle;
+		int32_t partition;
+
+		void write_currentZone(int zidx, fileContent &dataContainer, int &nVars, int &err);
+		void write_zoneData(int zidx, int vidx, int nValues, zoneData &subzoneData);
 
 		public:
 			szlWriter();
@@ -37,8 +41,8 @@ namespace tec {
 			szlWriter(const char* _fname);
 			~szlWriter();
 
-			void write_file(fileContent &dataContainer);
-			void write_file(std::string _fname, fileContent &dataContainer);
+			void write_file(fileContent &dataContainer, bool verbose = true);
+			void write_file(std::string _fname, fileContent &dataContainer, bool verbose = true);
 
 	};
 }

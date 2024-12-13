@@ -447,7 +447,7 @@ namespace tec {
 					//number of variables is known, check if zone size exists
 					if(!zoneSize) {
 						//if no zone size is given, check if size can be found via shared variable info
-						std::unique_ptr<std::vector<int32_t>> sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
+						auto sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
 						for(int v = 0; v < dataContainer.variables.size(); v++) {
 							if((*sharedList)[v]) {
 								//if a shared variable, zone size can be found from source zone
@@ -487,8 +487,8 @@ namespace tec {
 		size_t pos;
 		if(nVars) {
 			//if variables are known, iterate through the stored tec::variables and enter data
-			std::unique_ptr<std::vector<int32_t>> sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
-			std::unique_ptr<std::vector<bool>> passiveList = dataContainer.zoneDetails[zoneCounter-1].get_passiveList();
+			auto sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
+			auto passiveList = dataContainer.zoneDetails[zoneCounter-1].get_passiveList();
 			for(int v = 0; v < nVars; v++) {
 				if((*sharedList)[v] || (*passiveList)[v]) {
 					//variable is shared or passive -> move on to next variable
@@ -639,8 +639,8 @@ namespace tec {
 	}
 
 	void asciiReader::parse_blockFormatData(std::string &line, fileContent &dataContainer) {
-		std::unique_ptr<std::vector<int32_t>> sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
-		std::unique_ptr<std::vector<bool>> passiveList = dataContainer.zoneDetails[zoneCounter-1].get_passiveList();
+		auto sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
+		auto passiveList = dataContainer.zoneDetails[zoneCounter-1].get_passiveList();
 		
 		if(dataCount == zoneSize) {
 			//if the total number of data points has been read for the variable
@@ -773,8 +773,8 @@ namespace tec {
 							int v = 0; 
 
 							//get shared variable info for the current zone
-							std::unique_ptr<std::vector<int32_t>> sharedList = dataContainer.zoneDetails[z].get_sharedList();
-							std::unique_ptr<std::vector<bool>> passiveList = dataContainer.zoneDetails[z].get_passiveList();
+							auto sharedList = dataContainer.zoneDetails[z].get_sharedList();
+							auto passiveList = dataContainer.zoneDetails[z].get_passiveList();
 							//find first nonshared/nonpassive variable to get subzone size
 							for(int v = 0; v < dataContainer.variables.size(); v++) {
 								if((*sharedList)[v]) {
