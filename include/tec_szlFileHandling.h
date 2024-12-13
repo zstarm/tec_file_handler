@@ -26,5 +26,20 @@ namespace tec {
 			void read_file(fileContent &dataContainer);
 			void read_file(std::string _fname, fileContent &dataContainer);
 	};
+
+	class szlWriter {
+		std::string fname;
+		void* szlFileHandle;
+
+		public:
+			szlWriter();
+			szlWriter(std::string _fname);
+			szlWriter(const char* _fname);
+			~szlWriter();
+
+			void write_file(fileContent &dataContainer);
+			void write_file(std::string _fname, fileContent &dataContainer);
+
+	};
 }
 #endif

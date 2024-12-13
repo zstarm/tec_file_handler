@@ -16,7 +16,8 @@ namespace tec {
 
 		zone_sharedVars.resize(nVars);
 		zone_passiveVars.resize(nVars);
-		zone_varDTs.resize(nVars);
+		zone_varDTs.resize(nVars,1); //default to Float DT
+		zone_varLoc.resize(nVars,1); //default to nodal location
 
 	}
 
@@ -104,6 +105,16 @@ namespace tec {
 		}
 	}
 
+	void zoneDetails::set_faceConnections(int64_t numConnections, std::vector<int32_t> &faceConnects) {
+		nFaceConnections = numConnections;
+		int32_faceConnections = std::make_unique<std::vector<int32_t>>(std::move(faceConnects));
+	}
+	
+	void zoneDetails::set_faceConnections(int64_t numConnections, std::vector<int64_t> &faceConnects) {
+		nFaceConnections = numConnections;
+		int64_faceConnections = std::make_unique<std::vector<int64_t>>(std::move(faceConnects));
+	}
+	
 	void zoneDetails::set_formatType(char formattingType) {
 		if(formattingType == 'P' || formattingType == 'p') {
 			dataPacking = formattingFlag::point;
@@ -142,6 +153,14 @@ namespace tec {
 		}
 	}
 
+	void zoneDetails::set_faceConnectionMode(int32_t mode) {
+		faceConnectMode = (faceConnectionMode)mode;
+	}
+	
+	void zoneDetails::set_shareConnectivityZone(int32_t shareZone) {
+		shareConnectivityZone = shareZone;
+	}
+
 	void zoneDetails::set_zoneTitle(std::string title) {
 		zoneTitle = title;
 	}
@@ -161,6 +180,10 @@ namespace tec {
 		else {
 			if(resize) {
 				zone_varDTs.resize(resize, 1);
+				if(zone_varLoc.size() != resize) {
+					//resize the variable location as well to 1 (located a node)
+					zone_varLoc.resize(resize, 1);
+				}
 				if(zone_sharedVars.size() != resize) {
 					//resize the zone shared variables as well to 0 (nonshared variable id)
 					zone_sharedVars.resize(resize, 0);
@@ -178,6 +201,34 @@ namespace tec {
 		}
 	}
 
+	void zoneDetails::set_varLoc(int vidx, int32_t loc, int resize) {
+		if(vidx < nVars) {
+			zone_varDTs[vidx] = loc;
+		}
+		else {
+			if(resize) {
+				zone_varLoc.resize(resize, 1);
+				if(zone_varDTs.size() != resize) {
+					//resize the zone var DTs as well to 1 (float datatype)
+					zone_varDTs.resize(resize, 1);
+				}
+				if(zone_sharedVars.size() != resize) {
+					//resize the zone shared variables as well to 0 (nonshared variable id)
+					zone_sharedVars.resize(resize, 0);
+				}
+				if(zone_passiveVars.size() != resize) {
+					//resize the zone passive variables as well to 0 (active variable id)
+					zone_passiveVars.resize(resize, 0);
+				}
+				zone_varLoc[vidx] = loc;
+				nVars = resize;
+			}
+			else {
+				throw containerError("variable index is out of range for setting value location!");
+			}
+		}
+	}
+	
 	void zoneDetails::set_sharedVar(int vidx, int32_t zidx, int resize) {
 		if(vidx < nVars) {
 			zone_sharedVars[vidx] = zidx;
@@ -199,6 +250,10 @@ namespace tec {
 		else {
 			if(resize) {
 				zone_sharedVars.resize(resize, 0);
+				if(zone_varLoc.size() != resize) {
+					//resize the variable location as well to 1 (located a node)
+					zone_varLoc.resize(resize, 1);
+				}
 				if(zone_passiveVars.size() != resize) {
 					//resize the zone passive variables as well to 0 (active variable id)
 					zone_passiveVars.resize(resize, 0);
@@ -240,6 +295,10 @@ namespace tec {
 		else {
 			if(resize) {
 				zone_passiveVars.resize(resize, false);
+				if(zone_varLoc.size() != resize) {
+					//resize the variable location as well to 1 (located a node)
+					zone_varLoc.resize(resize, 1);
+				}
 				if(zone_sharedVars.size() != resize) {
 					//resize the shared zone vector as well to 0 (nonshared variable id)
 					zone_sharedVars.resize(resize, 0);
@@ -266,6 +325,10 @@ namespace tec {
 
 	zoneTypeFlag zoneDetails::get_zoneType() {
 		return zoneType;
+	}
+
+	std::string zoneDetails::get_zoneTitle() {
+		return zoneTitle;
 	}
 
 	int zoneDetails::get_size() {
@@ -307,20 +370,25 @@ namespace tec {
 	}
 
 	std::unique_ptr<std::vector<int32_t>> zoneDetails::get_sharedList() {
-		if(!zone_varDTs.size()) {
+		if(!zone_sharedVars.size()) {
 			return NULL;
 		}
 		return std::make_unique<std::vector<int32_t>>(zone_sharedVars);
 	}
 
+	std::unique_ptr<std::vector<int32_t>>  zoneDetails::get_locationList() {
+		if(!zone_varLoc.size()) {
+			return NULL;
+		}
+		return std::make_unique<std::vector<int32_t>>(zone_varLoc);
+	}
+	
 	std::unique_ptr<std::vector<bool>>  zoneDetails::get_passiveList() {
-		if(!zone_varDTs.size()) {
+		if(!zone_passiveVars.size()) {
 			return NULL;
 		}
 		return std::make_unique<std::vector<bool>>(zone_passiveVars);
-
 	}
-
 
 	//----------------------------------------------------------------------------------------------
 	// TECPLOT DATA
@@ -775,6 +843,10 @@ namespace tec {
 
 	void variable::modify_name(std::string vname) {
 		name = vname;
+	}
+
+	std::string variable::get_name() {
+		return name;
 	}
 
 	zoneData& variable::operator[](int zoneIdx) {

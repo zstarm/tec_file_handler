@@ -39,17 +39,12 @@ namespace tec {
 		//bit = 6
 	};
 
-	/*
-	enum class sharedVarFlag : bool {
-		nonshared = false,
-		shared = true
+	enum class faceConnectionMode : int32_t {
+		localone2one = 0,
+		localone2many = 1,
+		globalone2one = 2,
+		globalone2many = 3
 	};
-
-	enum class passiveVarFlag : bool {
-		nonpassive = false,
-		passive = true
-	};
-	*/
 
 	enum class formattingFlag : char {
 		point,
@@ -69,26 +64,39 @@ namespace tec {
 
 	class zoneDetails {
 		friend class fileContent;
+	
 		friend class asciiReader;
 		friend class szlReader;
+		//friend class szlWriter;
 
 		private:
 			int nVars;
-			int I, J, K;
+
+			int64_t I, J, K, nFaceConnections;
 			formattingFlag dataPacking;
 			zoneTypeFlag zoneType;
+			faceConnectionMode faceConnectMode;
 			std::string zoneTitle;
-			int strandID;
+			int32_t strandID, shareConnectivityZone;
 			double solutionTime;
+			
 			std::vector<int32_t> zone_varDTs;
+			std::vector<int32_t> zone_varLoc;
 			std::vector<int32_t> zone_sharedVars;
 			std::vector<bool> zone_passiveVars;
 
+			std::unique_ptr<std::vector<int32_t>> int32_faceConnections;
+			std::unique_ptr<std::vector<int64_t>> int64_faceConnections;
+			
 			bool hasSharedVars;
 			bool hasPassiveVars;
 
 			void set_formatType(char formattingType);
 			void set_zoneType(char type);
+			void set_faceConnectionMode(int32_t mode);
+			void set_faceConnections(int64_t numConnections, std::vector<int32_t> &faceConnects);
+			void set_faceConnections(int64_t numConnections, std::vector<int64_t> &faceConnects);
+			void set_shareConnectivityZone(int32_t shareZone);
 			void set_zoneTitle(std::string title);
 			void set_IJKSize(char IJK, int size);
 			void set_strandID(int strand);
@@ -97,6 +105,7 @@ namespace tec {
 			void set_sharedVar(int vidx, int32_t zidx, int resize = 0);
 			void set_passiveVar(int vidx, bool flag, int resize  = 0);
 			void set_varDT(int vidx, int32_t type, int resize =  0);
+			void set_varLoc(int vidx, int32_t loc, int resize =  0);
 
 		public:
 			zoneDetails(int zid, size_t vars);
@@ -109,6 +118,10 @@ namespace tec {
 			
 			formattingFlag get_formattingType();
 			zoneTypeFlag get_zoneType();
+			//faceConnectionMode get_faceConnectionMode();
+			//int64_t get_numFaceConnections();
+			//int32_t get_shareConnectivityZone();
+			std::string get_zoneTitle();
 			int get_size();
 			int get_Imax();
 			int get_Jmax();
@@ -116,6 +129,7 @@ namespace tec {
 
 			std::unique_ptr<std::vector<int32_t>> get_varDTs();
 			std::unique_ptr<std::vector<int32_t>> get_sharedList();
+			std::unique_ptr<std::vector<int32_t>> get_locationList();
 			std::unique_ptr<std::vector<bool>> get_passiveList();
 	};
 
@@ -190,6 +204,7 @@ namespace tec {
 			~variable();
 
 			void modify_name(std::string vname);
+			std::string get_name();
 			void resize_zone(int zone, int _size, dataTypeFlag T = dataTypeFlag::singlePrecision);
 			zoneData& operator[](int idx); 
 	};
@@ -197,10 +212,10 @@ namespace tec {
 	class fileContent {
 
 		friend class asciiReader;
-		friend class asciiWriter;
+		//friend class asciiWriter;
 
 		friend class szlReader;
-		//friend class szlWriter;
+		friend class szlWriter;
 
 		private:
 			std::string title;
