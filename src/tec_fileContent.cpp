@@ -1061,15 +1061,20 @@ namespace tec {
 	}
 
 	void fileContent::print_fileDetails(bool include_data) {
-		print_headerDetails();
-		std::cout << "\n" << std::endl;	
-		for(int z = 0; z < zoneDetails.size(); z++) {
-			print_zoneDetails(z);
+		try {
+			print_headerDetails();
 			std::cout << "\n" << std::endl;	
-			if(include_data) {
-				print_zoneData(z);
+			for(int z = 0; z < zoneDetails.size(); z++) {
+				print_zoneDetails(z);
 				std::cout << "\n" << std::endl;	
+				if(include_data) {
+					print_zoneData(z);
+					std::cout << "\n" << std::endl;	
+				}
 			}
+		}
+		catch(containerError const &e) {
+			std::cout << "\nCONTAINER ERROR: " << e.what() << " (CODE: " << e.code + e.secondary_code << ")" << std::endl;
 		}
 	}
 
