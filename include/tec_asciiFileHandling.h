@@ -40,5 +40,23 @@ namespace tec {
 			void read_file(fileContainer &dataContainer);
 			void read_file(std::string _fname, fileContainer &dataContainer);
 	};
+	
+	class asciiWriter {
+		
+		std::string fname;
+		std::ofstream out_fs;
+
+		void write_currentZone(int zidx, fileContainer &dataContainer, int &nVars, bool verbose);
+
+		public:
+			asciiWriter();
+			asciiWriter(std::string _fname);
+			asciiWriter(const char* _fname);
+			~asciiWriter();
+
+			void write_file(fileContainer &dataContainer, bool verbose = true);
+			//void write_file(std::string _fname, fileContainer, &dataContainer, bool verbose = true);
+
+	};
 }
 #endif

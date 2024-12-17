@@ -11,6 +11,7 @@ namespace tec {
 	};
 
 	enum class dataTypeFlag : int32_t {
+		empty = 0,
 		singlePrecision = 1,
 		doublePrecision = 2,
 		int32 = 3,

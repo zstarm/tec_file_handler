@@ -20,7 +20,11 @@ namespace tec {
 	}
 
 	void variable::resize_zone(int zone, int _size, dataTypeFlag T) {
-		while(zone >= subzoneData.size()) {
+		if(zone >= subzoneData.size()) {
+			while(zone > subzoneData.size()) {
+				//push back empty type for zones where the variable is passive/unused 
+				subzoneData.push_back(dataTypeFlag::singlePrecision);
+			}
 			subzoneData.push_back(T);
 		}
 		
@@ -57,7 +61,7 @@ namespace tec {
 		if(zoneIdx < subzoneData.size()) {
 			return subzoneData[zoneIdx];
 		}
-		throw containerError("zone index exceeds subzone vector limits");
+		throw containerError("zone index exceeds subzone vector limits of " + std::to_string(subzoneData.size()) + "for variable " + name);
 	}
 
 }

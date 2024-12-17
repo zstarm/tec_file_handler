@@ -1,10 +1,12 @@
 #include "tec_asciiFileHandling.h"
 namespace tec {
-	asciiReader::asciiReader(std::string _fname) : zoneCounter(0) {
+	asciiReader::asciiReader() : zoneCounter(0), zoneSize(0), dataCount(0), varCount(0) {}
+
+	asciiReader::asciiReader(std::string _fname) : zoneCounter(0), zoneSize(0), dataCount(0), varCount(0) {
 		fname = _fname;
 	}
 
-	asciiReader::asciiReader(const char* _fname) : zoneCounter(0) {
+	asciiReader::asciiReader(const char* _fname) : zoneCounter(0), zoneSize(0), dataCount(0), varCount(0) {
 		fname = std::string(_fname);
 	}
 
@@ -830,4 +832,253 @@ namespace tec {
 		fname = _fname;
 		read_file(dataContainer);
 	}
+
+
+	asciiWriter::asciiWriter() {}
+
+	asciiWriter::asciiWriter(std::string _fname) {
+		fname = _fname;
+	}
+
+	asciiWriter::asciiWriter(const char* _fname) {
+		fname =	std::string(_fname);
+	}
+
+	asciiWriter::~asciiWriter() {}
+
+	void asciiWriter::write_currentZone(int zidx, fileContainer &dataContainer, int &nVars, bool verbose) {
+		std::string zTitle = dataContainer.zoneDetails[zidx].get_zoneTitle();
+		zoneTypeFlag zType = dataContainer.zoneDetails[zidx].get_zoneType();
+		formatFlag zFormat = dataContainer.zoneDetails[zidx].get_formattingType();
+		int64_t Imax,Jmax,Kmax;
+		Imax = dataContainer.zoneDetails[zidx].get_Imax();
+		Jmax = dataContainer.zoneDetails[zidx].get_Jmax();
+		Kmax = dataContainer.zoneDetails[zidx].get_Kmax();
+		
+		int32_t strandID = dataContainer.zoneDetails[zidx].get_strandID();
+
+		auto shareSource = dataContainer.zoneDetails[zidx].get_sharedList();
+		auto passiveList = dataContainer.zoneDetails[zidx].get_passiveList();
+		auto valueLocs = dataContainer.zoneDetails[zidx].get_locationList();
+		
+		if(verbose) {
+			std::cout << "Creating Zone " << zidx+1 << ":" << std::endl;
+			std::cout << "\tTitle = " << zTitle << std::endl;
+			std::cout << "\tType = ";
+			switch(zType) {
+				case zoneTypeFlag::ordered:
+					std::cout << "ORDERED" << std::endl;
+					break;
+			}
+			std::cout <<"\tImax = " << Imax << std::endl;
+			std::cout <<"\tJmax = " << Jmax << std::endl;
+			std::cout <<"\tKmax = " << Kmax << std::endl;
+			std::cout <<"\tshareVarFromZone = ";
+			for(int v = 0; v < nVars; v++) {
+				std::cout << (*shareSource)[v];
+				if(v+1 < nVars) {
+					std::cout << ",";
+				}
+			}
+			std::cout << std::endl;
+		}
+
+		out_fs << "ZONE ";
+		out_fs << "T = \"" << zTitle << "\" " << std::endl;
+		if(Imax) {
+			out_fs << "I = " << Imax << " ";
+		}
+		if(Jmax) {
+			out_fs << "J = " << Jmax << " ";
+		}
+		if(Imax) {
+			out_fs << "K = " << Kmax << " ";
+		}
+		out_fs << "ZONETYPE = ";
+		switch(zType) {
+			case zoneTypeFlag::ordered:
+				out_fs << "ORDERED" << std::endl;
+				break;
+		}
+
+		if(strandID) {
+			out_fs << "STRANDID = " << strandID << " SOLUTIONTIME = " << dataContainer.zoneDetails[zidx].get_solutionTime() << std::endl;
+		}
+		
+		std::string passiveVarList = "PASSIVEVARLIST = [";
+		std::string shareList = "VARSHARELIST = (";
+		std::string dataTypeList = "DT = (";
+		
+		for(int v = 0; v < nVars; v++) {
+			if((*passiveList)[v]) {
+				passiveVarList = passiveVarList + std::to_string(v+1) + ",";
+			}
+			if(zidx > 0 && (*shareSource)[v]) {
+				shareList = shareList + "[" + std::to_string(v+1) + "]=" + std::to_string((*shareSource)[v]) + ",";
+			}
+			switch(dataContainer.vars[v][zidx].type()) {
+				case dataTypeFlag::singlePrecision:
+					dataTypeList = dataTypeList +  " SINGLE ";
+					break;
+				case dataTypeFlag::doublePrecision:
+					dataTypeList = dataTypeList +  " DOUBLE ";
+					break;
+				case dataTypeFlag::int32:
+					dataTypeList = dataTypeList + " LONGINT ";
+					break;
+				case dataTypeFlag::int16:
+					dataTypeList = dataTypeList +  " SHORTINT ";
+					break;
+				case dataTypeFlag::byte:
+					dataTypeList = dataTypeList +  " BYTE ";
+					break;
+				//default:
+			}
+		}
+
+		passiveVarList[passiveVarList.length()-1] = ']';
+		dataTypeList[dataTypeList.length()-1] = ')';
+		shareList[shareList.length()-1] = ')';
+		out_fs << dataTypeList << std::endl;
+		
+		if(zidx > 0 && shareList.length() > 16) {
+			out_fs << shareList << std::endl;
+		}
+		if(passiveVarList.length() > 18) {
+			out_fs << passiveVarList << std::endl;
+		}
+		out_fs << "DATAPACKING = ";	
+		if(zFormat == formatFlag::point) {
+			out_fs << "POINT" << std::endl;
+			int size = dataContainer.zoneDetails[zidx].get_size();
+			for(int i = 0; i < size; i++) {
+				for(int v = 0; v < nVars; v++) {
+					if(!(*shareSource)[v] && !(*passiveList)[v]) {
+						if(verbose && !i) {
+							std::cout << "Writing " << size << " values to zone " << zidx+1 << ", var " << v+1 << std::endl;
+						}
+						switch(dataContainer.vars[v][zidx].type()) {
+							case dataTypeFlag::singlePrecision:
+								out_fs << dataContainer.vars[v][zidx].get_float(i);	
+								break;
+							case dataTypeFlag::doublePrecision:
+								out_fs << dataContainer.vars[v][zidx].get_double(i);	
+								break;
+							case dataTypeFlag::int32:
+								out_fs << dataContainer.vars[v][zidx].get_int32(i);	
+								break;
+							case dataTypeFlag::int16:
+								out_fs << dataContainer.vars[v][zidx].get_int16(i);	
+								break;
+							case dataTypeFlag::byte:
+								out_fs << dataContainer.vars[v][zidx].get_byte(i);	
+								break;
+							//default:
+						}
+						if(v < nVars-1) {
+							out_fs << " ";
+						}	
+					}
+					
+				}
+				out_fs << std::endl;
+			}
+		}
+		else {
+			out_fs << "BLOCK" << std::endl;
+			for(int v = 0; v < nVars; v++) {
+				if((*shareSource)[v] || (*passiveList)[v]) {
+					//if shared or passive, skip writing out values
+					continue;
+				}
+				int size = 0;
+				if((*valueLocs)[v]) {
+					size = dataContainer.zoneDetails[zidx].get_size(); //value at node
+				}
+				else {
+					size = dataContainer.zoneDetails[zidx].get_size(false); //value is cell centered
+				}
+				if(verbose) {
+					std::cout << "Writing " << size << " values to zone " << zidx+1 << ", var " << v << std::endl;
+				}
+				for(int i = 0; i < size; i++) {
+					switch(dataContainer.vars[v][zidx].type()) {
+						case dataTypeFlag::singlePrecision:
+							out_fs << dataContainer.vars[v][zidx].get_float(i);	
+							break;
+						case dataTypeFlag::doublePrecision:
+							out_fs << dataContainer.vars[v][zidx].get_double(i);	
+							break;
+						case dataTypeFlag::int32:
+							out_fs << dataContainer.vars[v][zidx].get_int32(i);	
+							break;
+						case dataTypeFlag::int16:
+							out_fs << dataContainer.vars[v][zidx].get_int16(i);	
+							break;
+						case dataTypeFlag::byte:
+							out_fs << dataContainer.vars[v][zidx].get_byte(i);	
+							break;
+						//default:
+					}
+					if(!(i < size-1) || !((i+1)%5)) {
+						out_fs << std::endl;
+					}
+					else {
+						out_fs << " ";
+					}
+				}
+			}
+		}
+	}
+
+	void asciiWriter::write_file(fileContainer &dataContainer, bool verbose) {
+		if(verbose) {
+			std::cout << "Enabling diagonstics for ASCII output file \"" << fname << "\"" << std::endl;
+		}
+		try {
+			out_fs =  std::ofstream(fname);
+			if(out_fs.is_open()) {
+				out_fs << "TITLE = \"" << dataContainer.title << "\"" << std::endl;
+				out_fs << "FILETYPE = ";
+				switch(dataContainer.fType) {
+					case fileTypeFlag::full:
+						out_fs << "FULL" << std::endl;
+						break;
+					case fileTypeFlag::grid:
+						out_fs << "GRID" << std::endl;
+						break;
+					case fileTypeFlag::solution:
+						out_fs << "SOLUTION" << std::endl;
+						break;
+					//default:
+					//	throw
+				}
+				out_fs << "VARIABLES = \"";
+				int nVars = dataContainer.vars.size();
+				if(verbose) {
+					std::cout << "NumVars = " << nVars << std::endl;
+				}
+				for(int v = 0; v < nVars; v++) {
+					out_fs << dataContainer.vars[v].get_name();
+					if(v+1 < nVars) {
+						out_fs << "\", \"";
+					}
+				}
+				out_fs << "\"" << std::endl;
+
+				int nZones = dataContainer.zoneDetails.size();
+				for(int z = 0; z < nZones; z++) {
+					write_currentZone(z, dataContainer, nVars, verbose);
+				}
+			}
+			else {
+
+			}
+
+		}
+		catch(...) {
+		}
+
+	}
+
 }

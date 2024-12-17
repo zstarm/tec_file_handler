@@ -320,7 +320,7 @@ namespace tec {
 		}
 
 		for(int v = 0; v < nVars; v++) {
-			if(!(*sharingSource)[v] || (*passiveVars)[v]) {
+			if(!(*sharingSource)[v] && !(*passiveVars)[v]) {
 				//if not passive and not shared
 				int nValues;
 				if((*valueLocation)[v]) {
@@ -388,6 +388,11 @@ namespace tec {
 			
 			err = tecFileWriterOpen(fname.c_str(), dataContainer.title.c_str(), varlist.c_str(), 
 					SZPLT_FORMAT, (int32_t)dataContainer.fType, 0, NULL, &szlFileHandle);
+
+			if(err) {
+				throw szlReaderError("TECIO error opening file \"" + fname + "\"", 1);
+			}
+			
 			err = tecFileSetDiagnosticsLevel(szlFileHandle, outputDebugInfo);
 			
 			for(int z = 0; z < nZones; z++) {
@@ -397,6 +402,10 @@ namespace tec {
 
 		catch(szlWriterError const &e) {
 			std::cout << "\nSZL WRITING ERROR: " << e.what() << " (CODE: " << e.code+e.secondary_code << ")" << std::endl;
+		}
+
+		catch(containerError const &e) {
+			std::cout << e.what() << std::endl;
 		}
 
 		err = tecFileWriterClose(&szlFileHandle);
