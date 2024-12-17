@@ -2,7 +2,7 @@
 #define TEC_SZL_FILEHANDLE
 
 #include "tec_error.h"
-#include "tec_fileContent.h"
+#include "tec_fileContainer.h"
 
 #include "TECIO.h"
 
@@ -14,7 +14,7 @@ namespace tec {
 		int nZones;
 		int nVars;
 
-		void read_currentZone(int zidx, fileContent &dataContainer, int &err);
+		void read_currentZone(int zidx, fileContainer &dataContainer, int &err);
 		void insert_zoneData(int zidx, int vidx, int nValues, zoneData &subzoneData);
 
 		public:
@@ -23,8 +23,8 @@ namespace tec {
 			szlReader(const char* _fname);
 			~szlReader();
 
-			void read_file(fileContent &dataContainer);
-			void read_file(std::string _fname, fileContent &dataContainer);
+			void read_file(fileContainer &dataContainer);
+			void read_file(std::string _fname, fileContainer &dataContainer);
 	};
 
 	class szlWriter {
@@ -32,7 +32,7 @@ namespace tec {
 		void* szlFileHandle;
 		int32_t partition;
 
-		void write_currentZone(int zidx, fileContent &dataContainer, int &nVars, int &err);
+		void write_currentZone(int zidx, fileContainer &dataContainer, int &nVars, int &err);
 		void write_zoneData(int zidx, int vidx, int nValues, zoneData &subzoneData);
 
 		public:
@@ -41,8 +41,8 @@ namespace tec {
 			szlWriter(const char* _fname);
 			~szlWriter();
 
-			void write_file(fileContent &dataContainer, bool verbose = true);
-			void write_file(std::string _fname, fileContent &dataContainer, bool verbose = true);
+			void write_file(fileContainer &dataContainer, bool verbose = true);
+			void write_file(std::string _fname, fileContainer &dataContainer, bool verbose = true);
 
 	};
 }

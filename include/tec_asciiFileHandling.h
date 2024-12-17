@@ -3,7 +3,7 @@
 
 #include "tec_asciiFormat.h"
 #include "tec_error.h"
-#include "tec_fileContent.h"
+#include "tec_fileContainer.h"
 
 #include <fstream>
 
@@ -19,16 +19,16 @@ namespace tec {
 		int dataCount;
 		int varCount;
 
-		void parse_headerLine(std::string &line, fileContent &dataContainer);
-		void parse_zoneLine(std::string &line, fileContent &dataContainer);
-		void preprocess_data(std::string &line, fileContent &dataContainer);
+		void parse_headerLine(std::string &line, fileContainer &dataContainer);
+		void parse_zoneLine(std::string &line, fileContainer &dataContainer);
+		void preprocess_data(std::string &line, fileContainer &dataContainer);
 
-		void parse_pointFormatData(std::string &line, fileContent &dataContainer); 
-		void parse_blockFormatData(std::string &line, fileContent &dataContainer); 
+		void parse_pointFormatData(std::string &line, fileContainer &dataContainer); 
+		void parse_blockFormatData(std::string &line, fileContainer &dataContainer); 
 
-		void parse_dataTypeList(size_t& pos_tmp, std::string& field, fileContent &dataContainer);
-		void parse_shareList(size_t& pos_tmp, std::string& field, fileContent &dataContainer);
-		void parse_passiveList(size_t& pos_tmp, std::string& field, fileContent &dataContainer);
+		void parse_dataTypeList(size_t& pos_tmp, std::string& field, fileContainer &dataContainer);
+		void parse_shareList(size_t& pos_tmp, std::string& field, fileContainer &dataContainer);
+		void parse_passiveList(size_t& pos_tmp, std::string& field, fileContainer &dataContainer);
 		
 
 		public:
@@ -37,8 +37,8 @@ namespace tec {
 			asciiReader(const char* _fname);
 			~asciiReader();
 
-			void read_file(fileContent &dataContainer);
-			void read_file(std::string _fname, fileContent &dataContainer);
+			void read_file(fileContainer &dataContainer);
+			void read_file(std::string _fname, fileContainer &dataContainer);
 	};
 }
 #endif

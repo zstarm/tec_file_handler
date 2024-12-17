@@ -11,13 +11,12 @@
 
 
 
-#ifndef TEC_FILE_CONTENT
-#define TEC_FILE_CONTENT
+#ifndef TEC_FILE_CONTAINER
+#define TEC_FILE_CONTAINER
 
 #include <iostream>
 #include <string>
 #include <vector>
-//#include <type_traits>
 #include <unordered_map>
 #include <memory>
 
@@ -46,7 +45,7 @@ namespace tec {
 		globalone2many = 3
 	};
 
-	enum class formattingFlag : char {
+	enum class formatFlag : char {
 		point,
 		block
 	};
@@ -62,18 +61,17 @@ namespace tec {
 		FEpolyhedron = 7
 	};
 
-	class zoneDetails {
-		friend class fileContent;
+	class zoneInformation {
+		friend class fileContainer;
 	
 		friend class asciiReader;
 		friend class szlReader;
-		//friend class szlWriter;
 
 		private:
 			int nVars;
 
 			int64_t I, J, K, nFaceConns;
-			formattingFlag dataPacking;
+			formatFlag dataPacking;
 			zoneTypeFlag zoneType;
 			faceConnMode faceConnectMode;
 			std::string zoneTitle;
@@ -84,13 +82,17 @@ namespace tec {
 			std::vector<int32_t> zone_varLoc;
 			std::vector<int32_t> zone_sharedVars;
 			std::vector<int32_t> zone_passiveVars;
-
+			
+			//using ptrs as face connections may or may not exist and may be 64 or 32 bits
 			std::unique_ptr<std::vector<int32_t>> int32_faceConns;
 			std::unique_ptr<std::vector<int64_t>> int64_faceConns;
-			
+
+			bool hasFaceConnections;
 			bool hasSharedVars;
 			bool hasPassiveVars;
 
+
+			//PRIVATE MEMBER FUNCTIONS (sets zone information
 			void set_formatType(char formattingType);
 			void set_zoneType(char type);
 			void set_faceConnectMode(int32_t mode);
@@ -108,16 +110,16 @@ namespace tec {
 			void set_varLoc(int vidx, int32_t loc, int resize =  0);
 
 		public:
-			zoneDetails(int zid, size_t vars);
-			zoneDetails(int zid, int vars);
-			zoneDetails(zoneDetails &obj);
-			zoneDetails(zoneDetails &&obj);
-			~zoneDetails();
+			zoneInformation(int zid, size_t vars);
+			zoneInformation(int zid, int vars);
+			zoneInformation(zoneInformation &obj);
+			zoneInformation(zoneInformation &&obj);
+			~zoneInformation();
 
 			const int zoneID;
 			
 			std::string get_zoneTitle();
-			formattingFlag get_formattingType();
+			formatFlag get_formattingType();
 			zoneTypeFlag get_zoneType();
 			faceConnMode get_faceConnectMode();
 			int64_t get_numFaceConns();
@@ -137,7 +139,7 @@ namespace tec {
 
 	class zoneData {
 		
-		friend class fileContent;
+		friend class fileContainer;
 		
 		private:
 			dataTypeFlag T;
@@ -185,10 +187,10 @@ namespace tec {
 
 	class variable {
 
-		friend class fileContent;
+		friend class fileContainer;
 
 		friend class asciiReader;
-		friend class asciiWriter;
+		//friend class asciiWriter;
 
 		//friend class szlReader;
 		//friend class szlWriter;
@@ -211,10 +213,10 @@ namespace tec {
 			zoneData& operator[](int idx); 
 	};
 
-	class fileContent {
+	class fileContainer {
 
 		friend class asciiReader;
-		//friend class asciiWriter;
+		friend class asciiWriter;
 
 		friend class szlReader;
 		friend class szlWriter;
@@ -223,13 +225,13 @@ namespace tec {
 			std::string title;
 			fileTypeFlag fType;
 
-			std::vector<variable> variables;
-			std::vector<zoneDetails> zoneDetails; 
+			std::vector<variable> vars;
+			std::vector<zoneInformation> zoneDetails; 
 			std::unordered_map<std::string, size_t> var_map;
 
 		public:
-			fileContent();
-			~fileContent();
+			fileContainer();
+			~fileContainer();
 			
 			void print_headerDetails();
 			void print_zoneDetails(int zidx);
@@ -239,11 +241,8 @@ namespace tec {
 			int get_numZones();
 			int get_numVariables();
 
-
 			void operator[](int vidx);
 			void operator[](std::string vname);
 	};
 }
-
-
 #endif 

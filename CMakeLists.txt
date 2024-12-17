@@ -20,7 +20,7 @@ set(TECIO_DIR "/Users/starman/Documents/Projects/tec_file_handler/tecio")
 add_library(tec_fileHandling "${OUTTER_SOURCE_DIR}/src/tec_asciiFileHandling.cpp")
 target_sources(tec_fileHandling PRIVATE "${OUTTER_SOURCE_DIR}/src/tec_asciiFormat.cpp")
 target_sources(tec_fileHandling PRIVATE "${OUTTER_SOURCE_DIR}/src/tec_szlFileHandling.cpp")
-target_sources(tec_fileHandling PRIVATE "${OUTTER_SOURCE_DIR}/src/tec_fileContent.cpp")
+target_sources(tec_fileHandling PRIVATE "${OUTTER_SOURCE_DIR}/src/tec_fileContainer.cpp")
 target_sources(tec_fileHandling PRIVATE "${OUTTER_SOURCE_DIR}/src/tec_error.cpp")
 
 target_include_directories(tec_fileHandling PRIVATE ${OUTTER_SOURCE_DIR}/include/)

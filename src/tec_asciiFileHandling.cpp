@@ -10,7 +10,7 @@ namespace tec {
 
 	asciiReader::~asciiReader() {}
 
-	void asciiReader::parse_headerLine(std::string &line, fileContent &dataContainer) {
+	void asciiReader::parse_headerLine(std::string &line, fileContainer &dataContainer) {
 		size_t pos; 
 		std::string field;
 		while(!line.empty()) {
@@ -60,13 +60,13 @@ namespace tec {
 					size_t pos_tmp;
 					while((pos_tmp = field.find(',')) != std::string::npos) {
 						std::string vname = field.substr(0, pos_tmp);
-						dataContainer.variables.push_back(vname);
+						dataContainer.vars.push_back(vname);
 						//insert index of variable into map use the name as the key
-						dataContainer.var_map[vname] = dataContainer.variables.size()-1;
+						dataContainer.var_map[vname] = dataContainer.vars.size()-1;
 						field.erase(0,++pos_tmp);
 					}
-					dataContainer.variables.push_back(field); //capture the last variable in the list
-					dataContainer.var_map[field] = dataContainer.variables.size()-1;
+					dataContainer.vars.push_back(field); //capture the last variable in the list
+					dataContainer.var_map[field] = dataContainer.vars.size()-1;
 					break;
 				}
 
@@ -79,7 +79,7 @@ namespace tec {
 		}
 	}
 
-	void asciiReader::parse_zoneLine(std::string &line, fileContent &dataContainer) {
+	void asciiReader::parse_zoneLine(std::string &line, fileContainer &dataContainer) {
 		size_t pos; 
 		std::string field;
 		while(!line.empty()) {
@@ -94,7 +94,7 @@ namespace tec {
 				//creates new subzone if ZONE keyword is encountered
 				zoneCounter++; //increase counter
 				//push back new instance of zone details
-				dataContainer.zoneDetails.push_back({zoneCounter, dataContainer.variables.size()}); 
+				dataContainer.zoneDetails.push_back({zoneCounter, dataContainer.vars.size()}); 
 				//reset the data counter and variable counter for the zone
 				dataCount = 0; 
 				varCount = 0;
@@ -218,7 +218,7 @@ namespace tec {
 		}	
 	}
 
-	void asciiReader::parse_dataTypeList(size_t& pos_tmp, std::string& field, fileContent &dataContainer) {
+	void asciiReader::parse_dataTypeList(size_t& pos_tmp, std::string& field, fileContainer &dataContainer) {
 		varCount = 0;
 		char tmp_char;
 		bool keep_parsing = true;
@@ -231,57 +231,57 @@ namespace tec {
 			}
 			
 			int pushback_needed = 0;
-			if(!dataContainer.variables.size()) {
+			if(!dataContainer.vars.size()) {
 				//if the number of variables is currently unknown push back number of commas+1  
 				//instances of vars (should only run if first zone and first list entry)
 				std::for_each(field.begin(),field.end(), [&varCount = varCount, &dataContainer = dataContainer](char c) {
 						if(c == ',') {
-							dataContainer.variables.push_back("V"+std::to_string(++varCount));
+							dataContainer.vars.push_back("V"+std::to_string(++varCount));
 						}});
 				
-				dataContainer.variables.push_back("V"+std::to_string(++varCount));
+				dataContainer.vars.push_back("V"+std::to_string(++varCount));
 				pushback_needed = varCount;
 				varCount = 0;
 			}
 			tmp_char = std::toupper(field[0]);
 			if(tmp_char == 'D') {
 				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 2, pushback_needed);
-				while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
-					dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::doublePrecision);
+				while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
+					dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::doublePrecision);
 				}
 			}
 			else if(tmp_char == 'L') {
 				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 3);
-				while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
-					dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::int32);
+				while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
+					dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::int32);
 				}	
 			}
 			else if(tmp_char == 'S') {
 				tmp_char = std::toupper(field[1]);
 				if(tmp_char == 'H') {
 					dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 4, pushback_needed);
-					while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
-						dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::int16);
+					while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
+						dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::int16);
 					}
 				}
 				else {
 					dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 1, pushback_needed);
-					while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
-						dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
+					while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
+						dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
 					}
 				}
 			}
 			else if(tmp_char == 'B') {
 				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 5, pushback_needed);
-				while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
-					dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::byte);
+				while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
+					dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::byte);
 				}
 			}
 			else {
 				std::cout << "WARNING!: unrecognized datatype... Defaulting to type SINGLE" << std::endl;
 				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 1, pushback_needed);
-				while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
-					dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
+				while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
+					dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
 				}
 			}
 			field.erase(0,++pos_tmp); //erase through the next inner list comma
@@ -290,8 +290,8 @@ namespace tec {
 		varCount = 0; //reset the count for the data parsing functions
 	}
 
-	void asciiReader::parse_shareList(size_t& pos_tmp, std::string& field, fileContent &dataContainer) {
-		if(dataContainer.variables.size() && zoneCounter != 1) {
+	void asciiReader::parse_shareList(size_t& pos_tmp, std::string& field, fileContainer &dataContainer) {
+		if(dataContainer.vars.size() && zoneCounter != 1) {
 			bool keep_parsing = true;
 			while(keep_parsing) {
 				if(field[0] == '[') {
@@ -360,8 +360,8 @@ namespace tec {
 		}
 	}
 
-	void asciiReader::parse_passiveList(size_t& pos_tmp, std::string& field, fileContent &dataContainer) {
-		if(dataContainer.variables.size()) {
+	void asciiReader::parse_passiveList(size_t& pos_tmp, std::string& field, fileContainer &dataContainer) {
+		if(dataContainer.vars.size()) {
 			bool keep_parsing = true;
 			while(keep_parsing) {
 				std::vector<int32_t> passive_queue;
@@ -416,12 +416,12 @@ namespace tec {
 
 	}
 
-	void asciiReader::preprocess_data(std::string &line, fileContent &dataContainer) {
+	void asciiReader::preprocess_data(std::string &line, fileContainer &dataContainer) {
 		
 		if(!zoneCounter) {
 			//if no zone header was encountered, create a single zone
 			zoneCounter++; 
-			dataContainer.zoneDetails.push_back({1, dataContainer.variables.size()}); //create single instance of zone details
+			dataContainer.zoneDetails.push_back({1, dataContainer.vars.size()}); //create single instance of zone details
 			dataContainer.zoneDetails[zoneCounter].set_zoneTitle("ZONE 001");
 			dataCount = 0;
 			varCount = 0;
@@ -432,7 +432,7 @@ namespace tec {
 
 		if(dataContainer.zoneDetails[zoneCounter-1].get_zoneType() == zoneTypeFlag::ordered) { 
 			//ORDERED DATASET
-			if(dataContainer.zoneDetails[zoneCounter-1].get_formattingType() == formattingFlag::point) {
+			if(dataContainer.zoneDetails[zoneCounter-1].get_formattingType() == formatFlag::point) {
 				//POINT formatting
 				parse_pointFormatData(line, dataContainer);
 				dataCount++;
@@ -440,7 +440,7 @@ namespace tec {
 			else {
 				//BLOCK formatting
 				//check to make sure zone size is known
-				if(!dataContainer.variables.size()) {
+				if(!dataContainer.vars.size()) {
 					throw asciiReaderError("BLOCK formatting specified for zone " + std::to_string(zoneCounter) + " but number of variables is unknown");
 				}
 				else {
@@ -448,7 +448,7 @@ namespace tec {
 					if(!zoneSize) {
 						//if no zone size is given, check if size can be found via shared variable info
 						auto sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
-						for(int v = 0; v < dataContainer.variables.size(); v++) {
+						for(int v = 0; v < dataContainer.vars.size(); v++) {
 							if((*sharedList)[v]) {
 								//if a shared variable, zone size can be found from source zone
 								int I = dataContainer.zoneDetails[(*sharedList)[v]-1].get_Imax();
@@ -480,8 +480,8 @@ namespace tec {
 
 	}
 
-	void asciiReader::parse_pointFormatData(std::string &line, fileContent  &dataContainer) {
-		int nVars = dataContainer.variables.size();
+	void asciiReader::parse_pointFormatData(std::string &line, fileContainer  &dataContainer) {
+		int nVars = dataContainer.vars.size();
 		dataTypeFlag type;
 		std::string entry;
 		size_t pos;
@@ -494,13 +494,13 @@ namespace tec {
 					//variable is shared or passive -> move on to next variable
 					continue;
 				}
-				while(dataContainer.variables[v].subzoneData.size() < zoneCounter) {
+				while(dataContainer.vars[v].subzoneData.size() < zoneCounter) {
 					//push back subzoneData vector to match zone counter of reader
 					//should only occur if the data type for zone was not specified
-					dataContainer.variables[v].subzoneData.push_back(dataTypeFlag::singlePrecision);
+					dataContainer.vars[v].subzoneData.push_back(dataTypeFlag::singlePrecision);
 				}
 				
-				type = dataContainer.variables[v][zoneCounter-1].type(); //get data type of current variable
+				type = dataContainer.vars[v][zoneCounter-1].type(); //get data type of current variable
 				//extract single data entry in the file
 				pos = line.find_first_of(" \t", line.find_first_not_of(" \t"));
 				entry = line.substr(0, pos);
@@ -519,23 +519,23 @@ namespace tec {
 					//if a fresh subzone of known size, check datatype allocate needed space 
 					switch(type) {
 						case dataTypeFlag::singlePrecision:
-							dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
+							dataContainer.vars[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
 							break;
 						
 						case dataTypeFlag::doublePrecision:
-							dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::doublePrecision);
+							dataContainer.vars[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::doublePrecision);
 							break;
 
 						case dataTypeFlag::int32:
-							dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int32);
+							dataContainer.vars[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int32);
 							break;
 
 						case dataTypeFlag::int16:
-							dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int16);
+							dataContainer.vars[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int16);
 							break;
 
 						case dataTypeFlag::byte:
-							dataContainer.variables[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::byte);
+							dataContainer.vars[v].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::byte);
 							break;
 
 						default:
@@ -547,23 +547,23 @@ namespace tec {
 					//if size is known, insert data point
 					switch(type) {
 						case dataTypeFlag::singlePrecision:
-							dataContainer.variables[v][zoneCounter-1].get_float(dataCount) = std::stof(entry);
+							dataContainer.vars[v][zoneCounter-1].get_float(dataCount) = std::stof(entry);
 							break;
 						
 						case dataTypeFlag::doublePrecision:
-							dataContainer.variables[v][zoneCounter-1].get_double(dataCount) = std::stod(entry);
+							dataContainer.vars[v][zoneCounter-1].get_double(dataCount) = std::stod(entry);
 							break;
 
 						case dataTypeFlag::int32:
-							dataContainer.variables[v][zoneCounter-1].get_int32(dataCount) = std::stol(entry);
+							dataContainer.vars[v][zoneCounter-1].get_int32(dataCount) = std::stol(entry);
 							break;
 
 						case dataTypeFlag::int16:
-							dataContainer.variables[v][zoneCounter-1].get_int16(dataCount) = (int16_t)std::stoi(entry);
+							dataContainer.vars[v][zoneCounter-1].get_int16(dataCount) = (int16_t)std::stoi(entry);
 							break;
 
 						case dataTypeFlag::byte:
-							dataContainer.variables[v][zoneCounter-1].get_byte(dataCount) = (uint8_t)std::stoi(entry);
+							dataContainer.vars[v][zoneCounter-1].get_byte(dataCount) = (uint8_t)std::stoi(entry);
 							break;
 
 						default:
@@ -575,23 +575,23 @@ namespace tec {
 					//use push_back if size is not provided
 					switch(type) {
 						case dataTypeFlag::singlePrecision:
-							dataContainer.variables[v][zoneCounter-1].push_back(std::stof(entry));
+							dataContainer.vars[v][zoneCounter-1].push_back(std::stof(entry));
 							break;
 						
 						case dataTypeFlag::doublePrecision:
-							dataContainer.variables[v][zoneCounter-1].push_back(std::stod(entry));
+							dataContainer.vars[v][zoneCounter-1].push_back(std::stod(entry));
 							break;
 
 						case dataTypeFlag::int32:
-							dataContainer.variables[v][zoneCounter-1].push_back((int32_t)std::stol(entry));
+							dataContainer.vars[v][zoneCounter-1].push_back((int32_t)std::stol(entry));
 							break;
 
 						case dataTypeFlag::int16:
-							dataContainer.variables[v][zoneCounter-1].push_back((int16_t)std::stoi(entry));
+							dataContainer.vars[v][zoneCounter-1].push_back((int16_t)std::stoi(entry));
 							break;
 
 						case dataTypeFlag::byte:
-							dataContainer.variables[v][zoneCounter-1].push_back((uint8_t)std::stoi(entry));
+							dataContainer.vars[v][zoneCounter-1].push_back((uint8_t)std::stoi(entry));
 							break;
 
 						default:
@@ -606,7 +606,7 @@ namespace tec {
 			varCount = 0;
 			while(repeat) {
 				//push back a variable with default settings
-				dataContainer.variables.push_back("V" + std::to_string(++nVars));
+				dataContainer.vars.push_back("V" + std::to_string(++nVars));
 				dataContainer.zoneDetails[zoneCounter-1].set_varDT(varCount, 1, true);
 				
 				pos = line.find_first_of(" \t", line.find_first_not_of(" \t"));
@@ -624,13 +624,13 @@ namespace tec {
 				
 				//no type checking is required as default type is "float/single" 
 				if(!dataCount && zoneSize) {
-					dataContainer.variables[nVars-1].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
+					dataContainer.vars[nVars-1].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
 				}
 				if(zoneSize) {
-					dataContainer.variables[nVars-1][zoneCounter-1].get_float(dataCount) = std::stof(entry);
+					dataContainer.vars[nVars-1][zoneCounter-1].get_float(dataCount) = std::stof(entry);
 				}
 				else {
-					dataContainer.variables[nVars-1][zoneCounter-1].push_back(std::stof(entry));
+					dataContainer.vars[nVars-1][zoneCounter-1].push_back(std::stof(entry));
 				}
 				varCount++;
 			}
@@ -638,7 +638,7 @@ namespace tec {
 		}
 	}
 
-	void asciiReader::parse_blockFormatData(std::string &line, fileContent &dataContainer) {
+	void asciiReader::parse_blockFormatData(std::string &line, fileContainer &dataContainer) {
 		auto sharedList = dataContainer.zoneDetails[zoneCounter-1].get_sharedList();
 		auto passiveList = dataContainer.zoneDetails[zoneCounter-1].get_passiveList();
 		
@@ -656,34 +656,34 @@ namespace tec {
 				break; //break loop if the varCount exceeds the number of variables in file
 			}
 		}
-		while(dataContainer.variables[varCount].subzoneData.size() < zoneCounter) {
+		while(dataContainer.vars[varCount].subzoneData.size() < zoneCounter) {
 			//push back a subzoneData instance to match zone counter of reader
 			//should only occur if the data type for zone was not specified
-			dataContainer.variables[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
+			dataContainer.vars[varCount].subzoneData.push_back(dataTypeFlag::singlePrecision);
 		}
 		dataTypeFlag type;
-		type = dataContainer.variables[varCount][zoneCounter-1].type(); //get data type of current variable
+		type = dataContainer.vars[varCount][zoneCounter-1].type(); //get data type of current variable
 		if(!dataCount) {
 			//if at the start of reading new variable, allocate space for desired datatype
 			switch(type) {
 				case dataTypeFlag::singlePrecision:
-					dataContainer.variables[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
+					dataContainer.vars[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::singlePrecision);
 					break;
 				
 				case dataTypeFlag::doublePrecision:
-					dataContainer.variables[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::doublePrecision);
+					dataContainer.vars[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::doublePrecision);
 					break;
 
 				case dataTypeFlag::int32:
-					dataContainer.variables[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int32);
+					dataContainer.vars[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int32);
 					break;
 
 				case dataTypeFlag::int16:
-					dataContainer.variables[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int16);
+					dataContainer.vars[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::int16);
 					break;
 
 				case dataTypeFlag::byte:
-					dataContainer.variables[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::byte);
+					dataContainer.vars[varCount].resize_zone(zoneCounter-1, zoneSize, dataTypeFlag::byte);
 					break;
 
 				default:
@@ -703,23 +703,23 @@ namespace tec {
 			}
 			switch(type) {
 				case dataTypeFlag::singlePrecision:
-					dataContainer.variables[varCount][zoneCounter-1].get_float(dataCount) = std::stof(entry);
+					dataContainer.vars[varCount][zoneCounter-1].get_float(dataCount) = std::stof(entry);
 					break;
 				
 				case dataTypeFlag::doublePrecision:
-					dataContainer.variables[varCount][zoneCounter-1].get_double(dataCount) = std::stod(entry);
+					dataContainer.vars[varCount][zoneCounter-1].get_double(dataCount) = std::stod(entry);
 					break;
 
 				case dataTypeFlag::int32:
-					dataContainer.variables[varCount][zoneCounter-1].get_int32(dataCount) = std::stol(entry);
+					dataContainer.vars[varCount][zoneCounter-1].get_int32(dataCount) = std::stol(entry);
 					break;
 
 				case dataTypeFlag::int16:
-					dataContainer.variables[varCount][zoneCounter-1].get_int16(dataCount) = (int16_t)std::stoi(entry);
+					dataContainer.vars[varCount][zoneCounter-1].get_int16(dataCount) = (int16_t)std::stoi(entry);
 					break;
 
 				case dataTypeFlag::byte:
-					dataContainer.variables[varCount][zoneCounter-1].get_byte(dataCount) = (uint8_t)std::stoi(entry);
+					dataContainer.vars[varCount][zoneCounter-1].get_byte(dataCount) = (uint8_t)std::stoi(entry);
 					break;
 
 				default:
@@ -729,7 +729,7 @@ namespace tec {
 		}
 	}
 
-	void asciiReader::read_file(fileContent &dataContainer) {
+	void asciiReader::read_file(fileContainer &dataContainer) {
 		if(!fname.empty()) {
 			in_fs = std::ifstream(fname);
 			if(in_fs.is_open()) {
@@ -776,7 +776,7 @@ namespace tec {
 							auto sharedList = dataContainer.zoneDetails[z].get_sharedList();
 							auto passiveList = dataContainer.zoneDetails[z].get_passiveList();
 							//find first nonshared/nonpassive variable to get subzone size
-							for(int v = 0; v < dataContainer.variables.size(); v++) {
+							for(int v = 0; v < dataContainer.vars.size(); v++) {
 								if((*sharedList)[v]) {
 									//if a shared variable, zone size can be found from source zone
 									I = dataContainer.zoneDetails[(*sharedList)[v]-1].get_Imax();
@@ -790,7 +790,7 @@ namespace tec {
 								}
 								else if(!(*passiveList)[v]){
 									//if not a passive or shared variable, get zone size from vect size
-									s = dataContainer.variables[v][z].get_array_size();
+									s = dataContainer.vars[v][z].get_array_size();
 								}
 							}
 							//enter subzone size and check the next zone for missing size info
@@ -825,7 +825,7 @@ namespace tec {
 		}
 	}
 
-	void asciiReader::read_file(std::string _fname, fileContent &dataContainer) {
+	void asciiReader::read_file(std::string _fname, fileContainer &dataContainer) {
 		//change the file name can call general reader function
 		fname = _fname;
 		read_file(dataContainer);

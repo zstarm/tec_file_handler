@@ -16,7 +16,7 @@ namespace tec {
 
 	szlReader::~szlReader() {}
 
-	void szlReader::read_currentZone(int zidx, fileContent &dataContainer, int &err) {
+	void szlReader::read_currentZone(int zidx, fileContainer &dataContainer, int &err) {
 		dataContainer.zoneDetails.push_back({zidx+1, nVars}); //pushback new instance of zone
 		
 		//get zone title
@@ -162,8 +162,8 @@ namespace tec {
 				if(err) {
 					throw szlReaderError("TECIO error getting zone size for zone " + std::to_string(zidx+1), 1);
 				}
-				dataContainer.variables[v].resize_zone(zidx, (int)zoneSize, (dataTypeFlag)tmpDataType);
-				insert_zoneData(zidx, v, zoneSize, dataContainer.variables[v][zidx]);
+				dataContainer.vars[v].resize_zone(zidx, (int)zoneSize, (dataTypeFlag)tmpDataType);
+				insert_zoneData(zidx, v, zoneSize, dataContainer.vars[v][zidx]);
 			}
 		}
 	}
@@ -204,7 +204,7 @@ namespace tec {
 		}
 	}
 
-	void szlReader::read_file(fileContent &dataContainer) {
+	void szlReader::read_file(fileContainer &dataContainer) {
 		int err; //var to store error code
 		try {
 			//open the file for reading
@@ -232,7 +232,7 @@ namespace tec {
 				if(err) {
 					throw szlReaderError("TECIO error getting variable name", 1);
 				}
-				dataContainer.variables.push_back(std::string(tmpCharPtr)); //var names
+				dataContainer.vars.push_back(std::string(tmpCharPtr)); //var names
 				dataContainer.var_map[std::string(tmpCharPtr)] = v;		
 			}
 		
@@ -264,7 +264,7 @@ namespace tec {
 		}
 	}
 
-	void szlReader::read_file(std::string _fname, fileContent &dataContainer) {
+	void szlReader::read_file(std::string _fname, fileContainer &dataContainer) {
 		fname = _fname;
 		read_file(dataContainer);
 	}
@@ -281,7 +281,7 @@ namespace tec {
 
 	szlWriter::~szlWriter() {}
 
-	void szlWriter::write_currentZone(int zidx, fileContent &dataContainer, int &nVars, int &err) {
+	void szlWriter::write_currentZone(int zidx, fileContainer &dataContainer, int &nVars, int &err) {
 		int32_t outZoneIdx;
 		int32_t zType = (int32_t)dataContainer.zoneDetails[zidx].get_zoneType();
 		std::string zTitle = dataContainer.zoneDetails[zidx].get_zoneTitle();
@@ -331,7 +331,7 @@ namespace tec {
 					//cell centered value location
 					nValues = dataContainer.zoneDetails[zidx].get_size(false);
 				}
-				write_zoneData(zidx, v, nValues, dataContainer.variables[v][zidx]);
+				write_zoneData(zidx, v, nValues, dataContainer.vars[v][zidx]);
 			}
 		}
 	}
@@ -372,17 +372,17 @@ namespace tec {
 		}
 	}
 
-	void szlWriter::write_file(fileContent &dataContainer, bool verbose) {
+	void szlWriter::write_file(fileContainer &dataContainer, bool verbose) {
 		int err; //var to store error code
 		try {
 			int32_t outputDebugInfo = verbose;
 			
 			//get file header information
 			std::string varlist;
-			int nVars = dataContainer.variables.size();
+			int nVars = dataContainer.vars.size();
 			int nZones = dataContainer.zoneDetails.size();
 			for(int v = 0; v < nVars; v++) {
-				varlist += dataContainer.variables[v].get_name();	
+				varlist += dataContainer.vars[v].get_name();	
 				if(v != nVars-1) { varlist+=",";}
 			}
 			
@@ -403,7 +403,7 @@ namespace tec {
 
 	}
 	
-	void szlWriter::write_file(std::string _fname, fileContent &dataContainer, bool verbose) {
+	void szlWriter::write_file(std::string _fname, fileContainer &dataContainer, bool verbose) {
 		fname = _fname;
 		write_file(dataContainer, verbose);
 	}

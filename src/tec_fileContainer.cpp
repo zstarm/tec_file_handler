@@ -1,12 +1,12 @@
-#include "tec_fileContent.h"
+#include "tec_fileContainer.h"
 
 namespace tec {
 	//--------------------------------------------------------------------------------------------
 	// TECPLOT ZONE DETAILS
 	//--------------------------------------------------------------------------------------------
 
-	zoneDetails::zoneDetails(int zid, size_t vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) { zoneType = zoneTypeFlag::ordered; 
-		dataPacking = formattingFlag::point;
+	zoneInformation::zoneInformation(int zid, size_t vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) { zoneType = zoneTypeFlag::ordered; 
+		dataPacking = formatFlag::point;
 		I = 0;
 		J = 0;
 		K = 0;
@@ -19,9 +19,9 @@ namespace tec {
 		zone_varLoc.resize(nVars,1); //default to nodal location
 	}
 
-	zoneDetails::zoneDetails(int zid, int vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
+	zoneInformation::zoneInformation(int zid, int vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
 		zoneType = zoneTypeFlag::ordered; 
-		dataPacking = formattingFlag::point;
+		dataPacking = formatFlag::point;
 		I = 0;
 		J = 0;
 		K = 0;
@@ -37,10 +37,10 @@ namespace tec {
 		zone_varLoc.resize(nVars,1); //default to nodal location
 	}
 	
-	zoneDetails::~zoneDetails() {
+	zoneInformation::~zoneInformation() {
 	}
 
-	zoneDetails::zoneDetails(zoneDetails &obj) : zoneID(obj.zoneID) {
+	zoneInformation::zoneInformation(zoneInformation &obj) : zoneID(obj.zoneID) {
 		
 		nVars = obj.nVars;
 
@@ -69,7 +69,7 @@ namespace tec {
 
 	}
 
-	zoneDetails::zoneDetails(zoneDetails &&obj) : zoneID(std::move(obj.zoneID)) {
+	zoneInformation::zoneInformation(zoneInformation &&obj) : zoneID(std::move(obj.zoneID)) {
 		
 		nVars = std::move(obj.nVars);
 
@@ -97,7 +97,7 @@ namespace tec {
 		zone_passiveVars = std::move(obj.zone_passiveVars);
 	}
 
-	void zoneDetails::set_IJKSize(char IJK, int size) {
+	void zoneInformation::set_IJKSize(char IJK, int size) {
 		switch(IJK) {
 			case 'I':
 				I = size;
@@ -116,26 +116,26 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_faceConns(int64_t numConnections, std::vector<int32_t> &faceConnects) {
+	void zoneInformation::set_faceConns(int64_t numConnections, std::vector<int32_t> &faceConnects) {
 		nFaceConns = numConnections;
 		int32_faceConns = std::make_unique<std::vector<int32_t>>(std::move(faceConnects));
 	}
 	
-	void zoneDetails::set_faceConns(int64_t numConnections, std::vector<int64_t> &faceConnects) {
+	void zoneInformation::set_faceConns(int64_t numConnections, std::vector<int64_t> &faceConnects) {
 		nFaceConns = numConnections;
 		int64_faceConns = std::make_unique<std::vector<int64_t>>(std::move(faceConnects));
 	}
 	
-	void zoneDetails::set_formatType(char formattingType) {
+	void zoneInformation::set_formatType(char formattingType) {
 		if(formattingType == 'P' || formattingType == 'p') {
-			dataPacking = formattingFlag::point;
+			dataPacking = formatFlag::point;
 		}
 		else if(formattingType == 'B' || formattingType == 'b') {
-			dataPacking = formattingFlag::block;
+			dataPacking = formatFlag::block;
 		}
 		else {
 			std::cout << "ERROR!: Unrecognized formatting type for set_formatType, current formatting is set to ";
-			if(dataPacking == formattingFlag::point) {
+			if(dataPacking == formatFlag::point) {
 				std::cout << "\"POINT\"" << std::endl;
 			}
 			else {
@@ -144,7 +144,7 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_zoneType(char type) {
+	void zoneInformation::set_zoneType(char type) {
 		if(type == 'O' || type == 'o') {
 			zoneType = zoneTypeFlag::ordered;
 		}
@@ -164,27 +164,27 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_faceConnectMode(int32_t mode) {
+	void zoneInformation::set_faceConnectMode(int32_t mode) {
 		faceConnectMode = (faceConnMode)mode;
 	}
 	
-	void zoneDetails::set_shareConnZone(int32_t shareZone) {
+	void zoneInformation::set_shareConnZone(int32_t shareZone) {
 		shareConnZone = shareZone;
 	}
 
-	void zoneDetails::set_zoneTitle(std::string title) {
+	void zoneInformation::set_zoneTitle(std::string title) {
 		zoneTitle = title;
 	}
 
-	void zoneDetails::set_strandID(int strand) {
+	void zoneInformation::set_strandID(int strand) {
 		strandID = strand;
 	}
 
-	void zoneDetails::set_solutionTime(double time) {
+	void zoneInformation::set_solutionTime(double time) {
 		solutionTime = time;
 	}
 
-	void zoneDetails::set_varDT(int vidx, int32_t type, int resize) {
+	void zoneInformation::set_varDT(int vidx, int32_t type, int resize) {
 		if(vidx < nVars) {
 			zone_varDTs[vidx] = type;
 		}
@@ -212,7 +212,7 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_varLoc(int vidx, int32_t loc, int resize) {
+	void zoneInformation::set_varLoc(int vidx, int32_t loc, int resize) {
 		if(vidx < nVars) {
 			zone_varLoc[vidx] = loc;
 		}
@@ -240,7 +240,7 @@ namespace tec {
 		}
 	}
 	
-	void zoneDetails::set_sharedVar(int vidx, int32_t zidx, int resize) {
+	void zoneInformation::set_sharedVar(int vidx, int32_t zidx, int resize) {
 		if(vidx < nVars) {
 			zone_sharedVars[vidx] = zidx;
 			if(zidx && !hasSharedVars) {
@@ -285,7 +285,7 @@ namespace tec {
 		}
 	}
 
-	void zoneDetails::set_passiveVar(int vidx, bool flag, int resize) {
+	void zoneInformation::set_passiveVar(int vidx, bool flag, int resize) {
 		if(vidx < nVars) {
 			zone_passiveVars[vidx] = flag;
 			if(flag && !hasPassiveVars) {
@@ -330,39 +330,39 @@ namespace tec {
 		}
 	}
 
-	formattingFlag zoneDetails::get_formattingType() {
+	formatFlag zoneInformation::get_formattingType() {
 		return dataPacking;
 	}
 
-	zoneTypeFlag zoneDetails::get_zoneType() {
+	zoneTypeFlag zoneInformation::get_zoneType() {
 		return zoneType;
 	}
 
-	std::string zoneDetails::get_zoneTitle() {
+	std::string zoneInformation::get_zoneTitle() {
 		return zoneTitle;
 	}
 
-	int64_t zoneDetails::get_numFaceConns() {
+	int64_t zoneInformation::get_numFaceConns() {
 		return nFaceConns;
 	}
 
-	int32_t zoneDetails::get_shareConnZone() {
+	int32_t zoneInformation::get_shareConnZone() {
 		return shareConnZone;
 	}
 
-	faceConnMode zoneDetails::get_faceConnectMode() {
+	faceConnMode zoneInformation::get_faceConnectMode() {
 		return faceConnectMode;
 	}
 
-	int32_t zoneDetails::get_strandID() {
+	int32_t zoneInformation::get_strandID() {
 		return strandID;
 	}
 
-	double zoneDetails::get_solutionTime() {
+	double zoneInformation::get_solutionTime() {
 		return solutionTime;
 	}
 
-	int zoneDetails::get_size(bool node) {
+	int zoneInformation::get_size(bool node) {
 		if(I || J || K) {
 			int s = 1;
 
@@ -384,33 +384,33 @@ namespace tec {
 		return 0;
 	}
 
-	int64_t zoneDetails::get_Imax() {
+	int64_t zoneInformation::get_Imax() {
 		return I;
 	}
 
-	int64_t zoneDetails::get_Jmax() {
+	int64_t zoneInformation::get_Jmax() {
 		return J;
 	}
 
-	int64_t zoneDetails::get_Kmax() {
+	int64_t zoneInformation::get_Kmax() {
 		return K;
 	}
 
-	std::unique_ptr<std::vector<int32_t>> zoneDetails::get_varDTs() {
+	std::unique_ptr<std::vector<int32_t>> zoneInformation::get_varDTs() {
 		if(!zone_varDTs.size()) {
 			throw containerError("variable type vector is empty!");
 		}
 		return std::make_unique<std::vector<int32_t>>(zone_varDTs);
 	}
 
-	std::unique_ptr<std::vector<int32_t>> zoneDetails::get_sharedList() {
+	std::unique_ptr<std::vector<int32_t>> zoneInformation::get_sharedList() {
 		if(!zone_sharedVars.size()) {
 			return NULL;
 		}
 		return std::make_unique<std::vector<int32_t>>(zone_sharedVars);
 	}
 
-	std::unique_ptr<std::vector<int32_t>>  zoneDetails::get_locationList() {
+	std::unique_ptr<std::vector<int32_t>>  zoneInformation::get_locationList() {
 		if(!zone_varLoc.size()) {
 			std::cout << "no size" << std::endl;
 			return NULL;
@@ -418,7 +418,7 @@ namespace tec {
 		return std::make_unique<std::vector<int32_t>>(zone_varLoc);
 	}
 	
-	std::unique_ptr<std::vector<int32_t>>  zoneDetails::get_passiveList() {
+	std::unique_ptr<std::vector<int32_t>>  zoneInformation::get_passiveList() {
 		if(!zone_passiveVars.size()) {
 			return NULL;
 		}
@@ -895,11 +895,11 @@ namespace tec {
 	//--------------------------------------------------------------------------------------------
 	// TECPLOT FILE CONTENT
 	//--------------------------------------------------------------------------------------------
-	fileContent::fileContent() : fType(fileTypeFlag::full), title("N/A") {}
+	fileContainer::fileContainer() : fType(fileTypeFlag::full), title("N/A") {}
 
-	fileContent::~fileContent() {}
+	fileContainer::~fileContainer() {}
 
-	void fileContent::print_headerDetails() {
+	void fileContainer::print_headerDetails() {
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
 		std::cout << "TECPLOT FILE HEADER DETAILS" << std::endl;
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
@@ -922,15 +922,15 @@ namespace tec {
 
 		//variable list
 		std::cout << "VARIABLES (#SZ): ";
-		for(int v = 0; v < variables.size(); v++) {
-			std::cout << variables[v].name;
-			std::cout << "(" << variables[v].subzoneData.size() << ")";
+		for(int v = 0; v < vars.size(); v++) {
+			std::cout << vars[v].name;
+			std::cout << "(" << vars[v].subzoneData.size() << ")";
 			//ternary operator to determine if at the end of the variable list or not
-			v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+			v != vars.size()-1 ? std::cout << ", " : std::cout << std::endl;
 		}
 	}
 
-	void fileContent::print_zoneDetails(int zidx) {
+	void fileContainer::print_zoneDetails(int zidx) {
 		std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DETAILS" << std::endl;
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
 		
@@ -944,7 +944,7 @@ namespace tec {
 
 		//zone formatting/datapacking 
 		std::cout << "ZONE FORMATTING: ";
-		zoneDetails[zidx].dataPacking == formattingFlag::point ? std::cout << "POINT" : std::cout << "BLOCK";
+		zoneDetails[zidx].dataPacking == formatFlag::point ? std::cout << "POINT" : std::cout << "BLOCK";
 		std::cout << std::endl;
 
 		std::cout << "ZONE DIMENSIONS: I = " << zoneDetails[zidx].I << ", J = " << zoneDetails[zidx].J << ", K = " << zoneDetails[zidx].K << std::endl;
@@ -958,25 +958,25 @@ namespace tec {
 
 	}
 
-	void fileContent::print_zoneData(int zidx) {
+	void fileContainer::print_zoneData(int zidx) {
 		std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DATA" << std::endl;
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
-		for(int v = 0; v < variables.size(); v++) {
-			std::cout << variables[v].name;
+		for(int v = 0; v < vars.size(); v++) {
+			std::cout << vars[v].name;
 			std::cout << "(";
 			if(zoneDetails[zidx].zone_sharedVars[v]) {
 				std::cout << "SHARED)";
 				//ternary operator to determine if at the end of the variable list or not
-				v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+				v != vars.size()-1 ? std::cout << ", " : std::cout << std::endl;
 				continue;
 			}
 			else if(zoneDetails[zidx].zone_passiveVars[v]) {
 				std::cout << "PASSIVE)";
 				//ternary operator to determine if at the end of the variable list or not
-				v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+				v != vars.size()-1 ? std::cout << ", " : std::cout << std::endl;
 				continue;
 			}
-			switch(variables[v][zidx].T) {
+			switch(vars[v][zidx].T) {
 				case dataTypeFlag::singlePrecision:
 					std::cout << "SINGLE, ";
 					break;
@@ -993,7 +993,7 @@ namespace tec {
 					std::cout << "BYTE, ";
 					break;
 				default:
-					throw containerError("issue getting data type for variable: " + variables[v].name + " at zone" + std::to_string(zidx) + " to display");
+					throw containerError("issue getting data type for variable: " + vars[v].name + " at zone" + std::to_string(zidx) + " to display");
 			}
 			if(zoneDetails[zidx].zone_varLoc[v]) {
 				std::cout << "NODE";
@@ -1003,23 +1003,23 @@ namespace tec {
 			}
 			std::cout << ")";
 			//ternary operator to determine if at the end of the variable list or not
-			v != variables.size()-1 ? std::cout << ", " : std::cout << std::endl;
+			v != vars.size()-1 ? std::cout << ", " : std::cout << std::endl;
 		}
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
 		for(int i = 0; i < zoneDetails[zidx].get_size(); i++) {
-			for(int v = 0; v < variables.size(); v++) {
+			for(int v = 0; v < vars.size(); v++) {
 				if(zoneDetails[zidx].zone_sharedVars[v]) {
 					if(!v) {
 						continue;
 					}
-					v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+					v != vars.size()-1 ? std::cout << "\t" : std::cout << std::endl;
 					continue;
 				}
 				else if(zoneDetails[zidx].zone_passiveVars[v]) {
 					if(!v) {
 						continue;
 					}
-					v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+					v != vars.size()-1 ? std::cout << "\t" : std::cout << std::endl;
 					continue;
 				}
 				
@@ -1030,37 +1030,37 @@ namespace tec {
 						if(!v) {
 							continue;
 						}
-						v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+						v != vars.size()-1 ? std::cout << "\t" : std::cout << std::endl;
 						continue;
 					}
 				}
 				
-				switch(variables[v][zidx].T) {
+				switch(vars[v][zidx].T) {
 					case dataTypeFlag::singlePrecision:
-						std::cout << variables[v][zidx].get_float(i);
+						std::cout << vars[v][zidx].get_float(i);
 						break;
 					case dataTypeFlag::doublePrecision:
-						std::cout << variables[v][zidx].get_double(i);
+						std::cout << vars[v][zidx].get_double(i);
 						break;
 					case dataTypeFlag::int32:
-						std::cout << variables[v][zidx].get_int32(i);
+						std::cout << vars[v][zidx].get_int32(i);
 						break;
 					case dataTypeFlag::int16:
-						std::cout << variables[v][zidx].get_int16(i);
+						std::cout << vars[v][zidx].get_int16(i);
 						break;
 					case dataTypeFlag::byte:
-						std::cout << variables[v][zidx].get_byte(i);
+						std::cout << vars[v][zidx].get_byte(i);
 						break;
 					default:
-						throw containerError("issue getting data type for variable: " + variables[v].name + " at zone" + std::to_string(zidx) + " to display");
+						throw containerError("issue getting data type for variable: " + vars[v].name + " at zone" + std::to_string(zidx) + " to display");
 				}
 				//ternary operator to determine if at the end of the variable list or not
-				v != variables.size()-1 ? std::cout << "\t" : std::cout << std::endl;
+				v != vars.size()-1 ? std::cout << "\t" : std::cout << std::endl;
 			}
 		}
 	}
 
-	void fileContent::print_fileDetails(bool include_data) {
+	void fileContainer::print_fileDetails(bool include_data) {
 		try {
 			print_headerDetails();
 			std::cout << "\n" << std::endl;	
@@ -1078,22 +1078,22 @@ namespace tec {
 		}
 	}
 
-	void fileContent::operator[](int vidx) {
-		std::cout << "variable name at " << vidx << " is " << variables[vidx].name << std::endl;
+	void fileContainer::operator[](int vidx) {
+		std::cout << "variable name at " << vidx << " is " << vars[vidx].name << std::endl;
 	}
 
-	void fileContent::operator[](std::string vname) {
+	void fileContainer::operator[](std::string vname) {
 		try {
 			int vidx = var_map.at(vname);
-			std::cout << "variable name given key " << vname << " is " << variables[vidx].name << std::endl;
+			std::cout << "variable name given key " << vname << " is " << vars[vidx].name << std::endl;
 		}
 
 		catch(std::out_of_range const& e) {
 			std::cout << "The variable key \"" << vname << "\" does not correspond to the name any variable" << std::endl;
 			std::cout << "Please using one of the following names as a key or the corrsponding index number:" << std::endl;
-			for(int v = 0; v < variables.size(); v++) {
+			for(int v = 0; v < vars.size(); v++) {
 				std::cout << v << ": ";
-				std::cout << variables[v].name << std::endl;
+				std::cout << vars[v].name << std::endl;
 			}
 		}
 		
