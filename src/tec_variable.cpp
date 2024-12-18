@@ -7,10 +7,12 @@ namespace tec {
 	variable::variable() : name("V") {}
 
 	variable::variable(std::string vname) : name(vname) {}
-
+	
+	/*
 	variable::variable(variable &obj) : subzoneData(obj.subzoneData) {
 		name = obj.name;
 	}
+	*/
 
 	variable::variable(variable &&obj) : subzoneData(std::move(obj.subzoneData)){
 		name = std::move(obj.name);

@@ -27,7 +27,7 @@ namespace tec {
 		public:
 			variable();
 			variable(std::string vname);
-			variable(variable &obj);
+			variable(variable &obj) = delete;
 			variable(variable &&obj);
 			~variable();
 
