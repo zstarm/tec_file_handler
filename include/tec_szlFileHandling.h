@@ -21,7 +21,12 @@ namespace tec {
 			szlReader();
 			szlReader(std::string _fname);
 			szlReader(const char* _fname);
+			szlReader(const szlReader &obj) = delete;
+			szlReader(szlReader &&obj) = delete;
 			~szlReader();
+
+			szlReader& operator=(const szlReader &obj) = delete;
+			szlReader& operator=(szlReader &&obj) = delete;
 
 			void read_file(fileContainer &dataContainer);
 			void read_file(std::string _fname, fileContainer &dataContainer);
@@ -39,8 +44,13 @@ namespace tec {
 			szlWriter();
 			szlWriter(std::string _fname);
 			szlWriter(const char* _fname);
+			szlWriter(const szlWriter &obj) = delete;
+			szlWriter(szlWriter &&obj) = delete;
 			~szlWriter();
 
+			szlWriter& operator=(const szlWriter &obj) = delete;
+			szlWriter& operator=(szlWriter &&obj) = delete;
+			
 			void write_file(fileContainer &dataContainer, bool verbose = true);
 			void write_file(std::string _fname, fileContainer &dataContainer, bool verbose = true);
 

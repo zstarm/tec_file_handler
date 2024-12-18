@@ -110,6 +110,16 @@ namespace tec {
 
 		return *this;
 	}
+	
+	zoneData& zoneData::operator=(zoneData &&obj) {
+		T = std::move(obj.T);
+		float_content = std::move(obj.float_content);
+		double_content = std::move(obj.double_content);
+		int32_content = std::move(obj.int32_content);
+		int16_content = std::move(obj.int16_content);
+		byte_content = std::move(obj.byte_content);
+		return *this;
+	}
 
 	void zoneData::allocate(int size) {
 		switch(T) {

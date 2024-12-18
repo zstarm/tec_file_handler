@@ -7,11 +7,12 @@ namespace tec {
 	variable::variable() : name("V") {}
 
 	variable::variable(std::string vname) : name(vname) {}
-	
+
+	/*
 	variable::variable(const variable &obj) : name(obj.name), subzoneData(obj.subzoneData) {}
 
 	variable::variable(variable &&obj) : name(std::move(obj.name)), subzoneData(std::move(obj.subzoneData)) {}
-
+	*/
 	variable::~variable() {}
 
 	void variable::resize_zone(int zone, int _size, dataTypeFlag T) {

@@ -27,9 +27,12 @@ namespace tec {
 		public:
 			variable();
 			variable(std::string vname);
-			variable(const variable &obj);
-			variable(variable &&obj);
+			variable(const variable &obj) = default;
+			variable(variable &&obj) = default;
 			~variable();
+
+			variable& operator=(const variable &obj) = default;
+			variable& operator=(variable &&obj) = default;
 
 			void modify_name(std::string vname);
 			std::string get_name();

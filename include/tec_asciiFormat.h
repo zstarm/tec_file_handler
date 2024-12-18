@@ -14,7 +14,12 @@ namespace tec {
 
 		public:
 			asciiFormatter();
+			asciiFormatter(const asciiFormatter &obj) = default;
+			asciiFormatter(asciiFormatter &&obj) = default;
 			~asciiFormatter();
+			
+			asciiFormatter& operator=(const asciiFormatter &obj) = default;
+			asciiFormatter& operator=(asciiFormatter &&obj) = default;
 
 			bool format_header(std::string &line, const char* delim = ",", const char* separator = "\n");
 			bool format_subzoneHeader(std::string &line, const char* delim = ",", const char* separator = "\n");

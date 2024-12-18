@@ -40,7 +40,7 @@ namespace tec {
 	zoneInformation::~zoneInformation() {
 	}
 
-	zoneInformation::zoneInformation(zoneInformation &obj) {
+	zoneInformation::zoneInformation(const zoneInformation &obj) {
 		
 		nVars = obj.nVars;
 
@@ -425,5 +425,63 @@ namespace tec {
 		return std::make_unique<std::vector<int32_t>>(zone_passiveVars);
 	}
 
-}
+	zoneInformation& zoneInformation::operator=(const zoneInformation &obj) {
+		
+		nVars = obj.nVars;
 
+		I = obj.I;
+		J = obj.J;
+		K = obj.K;
+
+		dataPacking = obj.dataPacking;
+		zoneType = obj.zoneType;
+		zoneTitle = obj.zoneTitle;
+
+		strandID = obj.strandID;
+		solutionTime = obj.solutionTime;
+		
+		nFaceConns = obj.nFaceConns;
+		faceConnectMode = obj.faceConnectMode;
+		shareConnZone = obj.shareConnZone;
+
+		hasSharedVars = obj.hasSharedVars;
+		hasPassiveVars = obj.hasPassiveVars;
+
+		zone_varDTs = obj.zone_varDTs;
+		zone_varLoc = obj.zone_varLoc;
+		zone_sharedVars = obj.zone_sharedVars;
+		zone_passiveVars = obj.zone_passiveVars;
+
+		return *this;
+}
+	
+	zoneInformation& zoneInformation::operator=(zoneInformation &&obj) {
+		nVars = std::move(obj.nVars);
+
+		I = std::move(obj.I);
+		J = std::move(obj.J);
+		K = std::move(obj.K);
+
+		dataPacking = std::move(obj.dataPacking);
+		zoneType = std::move(obj.zoneType);
+		zoneTitle = std::move(obj.zoneTitle);
+
+		strandID = std::move(obj.strandID);
+		solutionTime = std::move(obj.solutionTime);
+		
+		nFaceConns = std::move(obj.nFaceConns);
+		faceConnectMode = std::move(obj.faceConnectMode);
+		shareConnZone = std::move(obj.shareConnZone);
+		
+		hasSharedVars = std::move(obj.hasSharedVars);
+		hasPassiveVars = std::move(obj.hasPassiveVars);
+
+		zone_varDTs = std::move(obj.zone_varDTs);
+		zone_varLoc = std::move(obj.zone_varLoc);
+		zone_sharedVars = std::move(obj.zone_sharedVars);
+		zone_passiveVars = std::move(obj.zone_passiveVars);
+
+		return *this;
+	}
+
+}

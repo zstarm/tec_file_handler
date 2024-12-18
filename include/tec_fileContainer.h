@@ -46,7 +46,12 @@ namespace tec {
 
 		public:
 			fileContainer();
+			fileContainer(const fileContainer &obj) = default;
+			fileContainer(fileContainer &&obj) = default;
 			~fileContainer();
+
+			fileContainer& operator=(const fileContainer &obj) = default;
+			fileContainer& operator=(fileContainer &&obj) = default;
 			
 			void print_headerDetails();
 			void print_zoneDetails(int zidx);

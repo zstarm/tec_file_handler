@@ -34,10 +34,10 @@ namespace tec {
 			zoneData(int size, double val);
 			zoneData(int size, int32_t val);
 			zoneData(int size, int16_t val); zoneData(int size, uint8_t val);
-
 			~zoneData();
 
 			zoneData& operator=(const zoneData& obj); //copy assignment
+			zoneData& operator=(zoneData &&obj); //move assignment
 
 			template <typename DT> 
 			void resize(int new_size, DT val) {

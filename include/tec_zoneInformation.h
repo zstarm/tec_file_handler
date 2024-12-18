@@ -61,7 +61,7 @@ namespace tec {
 		public:
 			zoneInformation(size_t vars);
 			zoneInformation(int vars);
-			zoneInformation(zoneInformation &obj);
+			zoneInformation(const zoneInformation &obj);
 			zoneInformation(zoneInformation &&obj);
 			~zoneInformation();
 
@@ -82,6 +82,9 @@ namespace tec {
 			std::unique_ptr<std::vector<int32_t>> get_sharedList();
 			std::unique_ptr<std::vector<int32_t>> get_locationList();
 			std::unique_ptr<std::vector<int32_t>> get_passiveList();
+			
+			zoneInformation& operator=(const zoneInformation &obj);
+			zoneInformation& operator=(zoneInformation &&obj);
 	};
 }
 #endif
