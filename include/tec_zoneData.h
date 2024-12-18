@@ -26,7 +26,7 @@ namespace tec {
 
 		public:
 			zoneData();
-			zoneData(zoneData& obj);
+			zoneData(const zoneData& obj);
 			zoneData(zoneData&& obj);
 			zoneData(dataTypeFlag type);
 			zoneData(dataTypeFlag type, int size);
@@ -36,6 +36,8 @@ namespace tec {
 			zoneData(int size, int16_t val); zoneData(int size, uint8_t val);
 
 			~zoneData();
+
+			zoneData& operator=(const zoneData& obj); //copy assignment
 
 			template <typename DT> 
 			void resize(int new_size, DT val) {

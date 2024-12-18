@@ -7,7 +7,7 @@ namespace tec {
 	zoneData::zoneData() : T(dataTypeFlag::singlePrecision) {
 	}
 
-	zoneData::zoneData(zoneData &obj) : T(obj.T) {
+	zoneData::zoneData(const zoneData &obj) : T(obj.T) {
 		switch(T) {
 			case dataTypeFlag::singlePrecision:
 				if(obj.float_content) {
@@ -75,6 +75,41 @@ namespace tec {
 	}
 
 	zoneData::~zoneData() {}
+
+	zoneData& zoneData::operator=(const zoneData& obj) {
+		T = obj.T;	
+		switch(T) {
+			case dataTypeFlag::singlePrecision:
+				if(obj.float_content) {
+					float_content = std::make_unique<std::vector<float>>(*obj.float_content);
+				}
+				break;
+			case dataTypeFlag::doublePrecision:
+				if(obj.double_content) {
+					double_content = std::make_unique<std::vector<double>>(*obj.double_content);
+				}
+				break;
+			case dataTypeFlag::int32:
+				if(obj.int32_content) {
+					int32_content = std::make_unique<std::vector<int32_t>>(*obj.int32_content);
+				}
+				break;
+			case dataTypeFlag::int16:
+				if(obj.int16_content) {
+					int16_content = std::make_unique<std::vector<int16_t>>(*obj.int16_content);
+				}
+				break;
+			case dataTypeFlag::byte:
+				if(obj.byte_content) {
+					byte_content = std::make_unique<std::vector<uint8_t>>(*obj.byte_content);
+				}
+				break;
+			default:
+				throw containerError("issue with copying zoneData object");
+		}
+
+		return *this;
+	}
 
 	void zoneData::allocate(int size) {
 		switch(T) {
