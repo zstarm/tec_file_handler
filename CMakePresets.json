@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "configurePresets": [
+    {
+      "name": "linux-default",
+      "displayName": "Linux Default",
+      "description": "Default configuration using unix make file generator",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/",
+	  "cacheVariables": {
+		"TECIO_DIR": "/iahome/s/st/starman/tecio/teciosrc/",
+		"TECIO_MPI_DIR": "/iahome/s/st/starman/tecio/teciompisrc/",
+		"CODE_DIR": "/iahome/s/st/starman/Documents/Github Repos/tec_file_handler/"
+	  }
+    },
+	{
+      "name": "mac-default",
+      "displayName": "MacOS Default",
+      "description": "Default configuration using unix make file generator",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/",
+	  "environment": {
+		"TECIO_DIR": "/Users/starman/Downloads/tecio/teciosrc/",
+		"TECIO_MPI_DIR": "/Users/starman/Downloads/tecio/teciompisrc/",
+		"CODE_DIR": "/Users/starman/Documents/Projects/tec_file_handler/"
+	  }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-default",
+      "displayName": "default build for linux machine",
+      "configurePreset": "linux-default"
+    }
+  ]
+}
