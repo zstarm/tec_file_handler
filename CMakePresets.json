@@ -19,7 +19,7 @@
       "description": "Default configuration using unix make file generator",
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build/",
-	  "environment": {
+	  "cacheVariables": {
 		"TECIO_DIR": "/Users/starman/Downloads/tecio/teciosrc/",
 		"TECIO_MPI_DIR": "/Users/starman/Downloads/tecio/teciompisrc/",
 		"CODE_DIR": "/Users/starman/Documents/Projects/tec_file_handler/"
@@ -31,6 +31,11 @@
       "name": "linux-default",
       "displayName": "default build for linux machine",
       "configurePreset": "linux-default"
+    },
+	{
+      "name": "mac-default",
+      "displayName": "default build for mac machine",
+      "configurePreset": "mac-default"
     }
   ]
 }
