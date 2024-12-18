@@ -59,14 +59,12 @@ namespace tec {
 			void set_varLoc(int vidx, int32_t loc, int resize =  0);
 
 		public:
-			zoneInformation(int zid, size_t vars);
-			zoneInformation(int zid, int vars);
+			zoneInformation(size_t vars);
+			zoneInformation(int vars);
 			zoneInformation(zoneInformation &obj);
 			zoneInformation(zoneInformation &&obj);
 			~zoneInformation();
 
-			const int zoneID;
-			
 			std::string get_zoneTitle();
 			formatFlag get_formattingType();
 			zoneTypeFlag get_zoneType();

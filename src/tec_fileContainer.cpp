@@ -40,7 +40,7 @@ namespace tec {
 	}
 
 	void fileContainer::print_zoneDetails(int zidx) {
-		std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DETAILS" << std::endl;
+		std::cout << "TECPLOT ZONE #" << zidx+1 << " DETAILS" << std::endl;
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
 		
 		//zone title
@@ -68,7 +68,7 @@ namespace tec {
 	}
 
 	void fileContainer::print_zoneData(int zidx) {
-		std::cout << "TECPLOT ZONE #" << zoneDetails[zidx].zoneID << " DATA" << std::endl;
+		std::cout << "TECPLOT ZONE #" << zidx+1 << " DATA" << std::endl;
 		std::cout << "---------------------------------------------------------------------------------" << std::endl;
 		for(int v = 0; v < vars.size(); v++) {
 			std::cout << vars[v].name;

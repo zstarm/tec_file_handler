@@ -96,7 +96,7 @@ namespace tec {
 				//creates new subzone if ZONE keyword is encountered
 				zoneCounter++; //increase counter
 				//push back new instance of zone details
-				dataContainer.zoneDetails.push_back({zoneCounter, dataContainer.vars.size()}); 
+				dataContainer.zoneDetails.push_back({dataContainer.vars.size()}); 
 				//reset the data counter and variable counter for the zone
 				dataCount = 0; 
 				varCount = 0;
@@ -423,7 +423,7 @@ namespace tec {
 		if(!zoneCounter) {
 			//if no zone header was encountered, create a single zone
 			zoneCounter++; 
-			dataContainer.zoneDetails.push_back({1, dataContainer.vars.size()}); //create single instance of zone details
+			dataContainer.zoneDetails.push_back({dataContainer.vars.size()}); //create single instance of zone details
 			dataContainer.zoneDetails[zoneCounter].set_zoneTitle("ZONE 001");
 			dataCount = 0;
 			varCount = 0;

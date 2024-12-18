@@ -5,7 +5,7 @@ namespace tec {
 	// TECPLOT ZONE DETAILS
 	//--------------------------------------------------------------------------------------------
 
-	zoneInformation::zoneInformation(int zid, size_t vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) { zoneType = zoneTypeFlag::ordered; 
+	zoneInformation::zoneInformation(size_t vars) : nVars(vars), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) { zoneType = zoneTypeFlag::ordered; 
 		dataPacking = formatFlag::point;
 		I = 0;
 		J = 0;
@@ -19,7 +19,7 @@ namespace tec {
 		zone_varLoc.resize(nVars,1); //default to nodal location
 	}
 
-	zoneInformation::zoneInformation(int zid, int vars) : nVars(vars), zoneID(zid), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
+	zoneInformation::zoneInformation(int vars) : nVars(vars), zoneTitle("ZONE 001"), hasSharedVars(false), hasPassiveVars(false) {
 		zoneType = zoneTypeFlag::ordered; 
 		dataPacking = formatFlag::point;
 		I = 0;
@@ -40,7 +40,7 @@ namespace tec {
 	zoneInformation::~zoneInformation() {
 	}
 
-	zoneInformation::zoneInformation(zoneInformation &obj) : zoneID(obj.zoneID) {
+	zoneInformation::zoneInformation(zoneInformation &obj) {
 		
 		nVars = obj.nVars;
 
@@ -69,7 +69,7 @@ namespace tec {
 
 	}
 
-	zoneInformation::zoneInformation(zoneInformation &&obj) : zoneID(std::move(obj.zoneID)) {
+	zoneInformation::zoneInformation(zoneInformation &&obj) {
 		
 		nVars = std::move(obj.nVars);
 

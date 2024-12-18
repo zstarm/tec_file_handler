@@ -17,7 +17,7 @@ namespace tec {
 	szlReader::~szlReader() {}
 
 	void szlReader::read_currentZone(int zidx, fileContainer &dataContainer, int &err) {
-		dataContainer.zoneDetails.push_back({zidx+1, nVars}); //pushback new instance of zone
+		dataContainer.zoneDetails.push_back({nVars}); //pushback new instance of zone
 		
 		//get zone title
 		char* tmpZoneTitle = NULL;
