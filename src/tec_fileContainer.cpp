@@ -1,8 +1,7 @@
 #include "tec_fileContainer.h"
 
 namespace tec {
-	//--------------------------------------------------------------------------------------------
-	// TECPLOT FILE CONTENT
+	//-------------------------------------------------------------------------------------------- // TECPLOT FILE CONTENT
 	//--------------------------------------------------------------------------------------------
 	fileContainer::fileContainer() : fType(fileTypeFlag::full), title("N/A") {}
 
@@ -184,6 +183,121 @@ namespace tec {
 		}
 		catch(containerError const &e) {
 			std::cout << "\nCONTAINER ERROR: " << e.what() << " (CODE: " << e.code + e.secondary_code << ")" << std::endl;
+		}
+	}
+
+	void fileContainer::add_variable(variable &&new_var, std::vector<bool> *shareWith, bool eqZones) {
+		if(var_map.find(new_var.name) == var_map.end()) {
+			//variable is a new to the dataset
+			int nZones = new_var.subzoneData.size();
+			if(nZones != zoneDetails.size()) {
+				if(eqZones) {
+					//THROW EXCEPTION!
+				}
+
+				//WARNING NUMBER OF ZONES ARE DIFFERENT 
+			}
+			if(shareWith == NULL) {
+				//no information for share zones, assume var is passive for zones without data
+				for(int z = 0; z < zoneDetails.size(); z++) {
+					if(!(z < nZones)) {
+						//if we have gone pass the number of zones included in new variable
+						//stop checking for data and just make variable passive in the extra zones
+						zoneDetails[z].nVars++;
+						zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+						zoneDetails[z].zone_passiveVars.emplace_back(1); //PASSIVE
+						zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+						zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+						
+					}
+					else {
+						//checking for size compatability
+						int size = new_var.subzoneData[z].get_array_size();
+						if(size) {
+							//if data is not empty, compare sizes
+							if(size != zoneDetails[z].get_size()) {
+								//THROW EXCEPTION -> sizes not equal	
+							}
+							//sizes are equivalent, add info to zoneDetails
+							zoneDetails[z].nVars++;
+							zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+							zoneDetails[z].zone_passiveVars.emplace_back(0); //nonpassive
+							zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+							int32_t tmpVarDT = (int32_t)new_var.subzoneData[z].type();	
+							zoneDetails[z].zone_varDTs.emplace_back(tmpVarDT); //set data type
+						}
+						else {
+							//data is empty, set passive
+							zoneDetails[z].nVars++;
+							zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+							zoneDetails[z].zone_passiveVars.emplace_back(1); //PASSIVE
+							zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+							zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+						}
+					}
+				}
+			}
+			else {
+				for(int z = 0; z < zoneDetails.size(); z++) {
+					if(!(z < nZones)) {
+						//if we have gone pass the number of zones included in new variable
+						//stop checking for data and just make variable passive in the extra zones
+						zoneDetails[z].nVars++;
+						zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+						zoneDetails[z].zone_passiveVars.emplace_back(1); //PASSIVE
+						zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+						zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+						
+					}
+					else {
+						//checking if data is provided 
+						int size = new_var.subzoneData[z].get_array_size();
+						if(size) {
+							//if data is not empty, check for size compatability
+							if(size != zoneDetails[z].get_size()) {
+								//THROW EXCEPTION -> sizes not equal	
+							}
+							//sizes are equivalent, add info to zoneDetails
+							zoneDetails[z].nVars++;
+							zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+							zoneDetails[z].zone_passiveVars.emplace_back(0); //nonpassive
+							zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+							int32_t tmpVarDT = (int32_t)new_var.subzoneData[z].type();	
+							zoneDetails[z].zone_varDTs.emplace_back(tmpVarDT); //set data type
+						}
+						else {
+							//data is empty
+							int32_t shareZone;
+							if((shareZone = shareWith->at(z)) > 0 && shareZone < z+1) {
+								//data at zone is shared from an earlier zone
+								zoneDetails[z].nVars++;
+								zoneDetails[z].zone_sharedVars.emplace_back(shareZone); //SHARED
+								zoneDetails[z].zone_passiveVars.emplace_back(0); //nonpassive
+								zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+								zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+							}
+							else {
+								if(shareZone != 0) {
+									//THROW -> sharing source must come from an earlier zone)
+								}
+
+								//data is empty and not shared -> set to be passive
+								zoneDetails[z].nVars++;
+								zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+								zoneDetails[z].zone_passiveVars.emplace_back(1); //PASSIVE
+								zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+								zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+							}
+						}
+					}
+				}
+
+			}
+			
+			//after checking compatability and updating zone information,
+			//insert instance of tec::variable into vector and update var index mapping
+			vars.emplace_back(std::move(new_var));
+			var_map[new_var.get_name()] = vars.size()-1;
 		}
 	}
 

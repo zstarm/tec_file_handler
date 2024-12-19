@@ -20,7 +20,6 @@
 #include <unordered_map>
 
 #include "tec_error.h"
-
 #include "tec_enumerations.h"
 #include "tec_zoneInformation.h"
 #include "tec_zoneData.h"
@@ -60,6 +59,9 @@ namespace tec {
 
 			int get_numZones();
 			int get_numVariables();
+
+			void add_variable(variable &&new_var, std::vector<bool> *shareWith, bool eqZones = true);
+			//void add_cellVariableToZone(variable new_var, int zidx, bool shareable = false);
 
 			void operator[](int vidx);
 			void operator[](std::string vname);
