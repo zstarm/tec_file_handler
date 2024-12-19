@@ -28,12 +28,22 @@ namespace tec {
 			zoneData();
 			zoneData(const zoneData& obj);
 			zoneData(zoneData&& obj);
+		
 			zoneData(dataTypeFlag type);
 			zoneData(dataTypeFlag type, int size);
+		
 			zoneData(int size, float val);
 			zoneData(int size, double val);
 			zoneData(int size, int32_t val);
-			zoneData(int size, int16_t val); zoneData(int size, uint8_t val);
+			zoneData(int size, int16_t val); 
+			zoneData(int size, uint8_t val);
+			
+			zoneData(std::vector<float> &&data);
+			zoneData(std::vector<double> &&data);
+			zoneData(std::vector<int32_t> &&data);
+			zoneData(std::vector<int16_t> &&data);
+			zoneData(std::vector<uint8_t> &&data);
+		
 			~zoneData();
 
 			zoneData& operator=(const zoneData& obj); //copy assignment
@@ -116,4 +126,5 @@ namespace tec {
 			
 	};
 }
+
 #endif

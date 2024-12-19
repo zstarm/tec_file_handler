@@ -74,6 +74,27 @@ namespace tec {
 		allocate<uint8_t>(size, val);
 	}
 
+	zoneData::zoneData(std::vector<float> &&data) : T(dataTypeFlag::singlePrecision) {
+		float_content = std::make_unique<std::vector<float>>(data);
+	}
+	
+	zoneData::zoneData(std::vector<double> &&data) : T(dataTypeFlag::doublePrecision) {
+		double_content = std::make_unique<std::vector<double>>(data);
+	}
+	
+	zoneData::zoneData(std::vector<int32_t> &&data) : T(dataTypeFlag::int32) {
+		int32_content = std::make_unique<std::vector<int32_t>>(data);
+	}
+	
+	zoneData::zoneData(std::vector<int16_t> &&data) : T(dataTypeFlag::int16) {
+		int16_content = std::make_unique<std::vector<int16_t>>(data);
+	}
+	
+	zoneData::zoneData(std::vector<uint8_t> &&data) : T(dataTypeFlag::byte) {
+		byte_content = std::make_unique<std::vector<uint8_t>>(data);
+	}
+
+
 	zoneData::~zoneData() {}
 
 	zoneData& zoneData::operator=(const zoneData& obj) {
