@@ -59,12 +59,15 @@ namespace tec {
 
 			int get_numZones();
 			int get_numVariables();
+			std::string& get_title();
+			std::string get_fileType();
+			zoneInformation& get_zone(int zidx);
 
-			void add_variable(variable &&new_var, std::vector<bool> *shareWith, bool eqZones = true);
+			void add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool eqZones = true);
 			//void add_cellVariableToZone(variable new_var, int zidx, bool shareable = false);
 
-			void operator[](int vidx);
-			void operator[](std::string vname);
+			variable& operator[](int vidx);
+			variable& operator[](std::string vname);
 	};
 
 }

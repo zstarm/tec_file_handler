@@ -29,10 +29,10 @@ namespace tec {
 		}
 
 		//variable list
-		std::cout << "VARIABLES (#SZ): ";
+		std::cout << "VARIABLES: ";
 		for(int v = 0; v < vars.size(); v++) {
 			std::cout << vars[v].name;
-			std::cout << "(" << vars[v].subzoneData.size() << ")";
+			//std::cout << "(" << vars[v].su << ")";
 			//ternary operator to determine if at the end of the variable list or not
 			v != vars.size()-1 ? std::cout << ", " : std::cout << std::endl;
 		}
@@ -186,7 +186,48 @@ namespace tec {
 		}
 	}
 
-	void fileContainer::add_variable(variable &&new_var, std::vector<bool> *shareWith, bool eqZones) {
+	int fileContainer::get_numZones() {
+		return zoneDetails.size();
+	}
+
+	int fileContainer::get_numVariables() {
+		return vars.size();
+	}
+
+	std::string& fileContainer::get_title() {
+		return title;
+	}
+
+	std::string fileContainer::get_fileType() {
+		//try {
+			switch(fType) {
+				case fileTypeFlag::full:
+					return "FULL";
+					break;
+				case fileTypeFlag::grid:
+					return "GRID";
+					break;
+				case fileTypeFlag::solution:
+					return "SOLUTION";
+					break;
+			}
+			
+			return "";
+		//}
+	}
+
+	zoneInformation& fileContainer::get_zone(int zidx) {
+		try {
+			return zoneDetails.at(zidx);
+		}
+		catch(std::out_of_range const &e) {
+			std::cout << "zone index \"" << zidx << "\" is out or range" << std::endl;
+		}
+	}
+
+
+
+	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool eqZones) {
 		if(var_map.find(new_var.name) == var_map.end()) {
 			//variable is a new to the dataset
 			int nZones = new_var.subzoneData.size();
@@ -197,7 +238,7 @@ namespace tec {
 
 				//WARNING NUMBER OF ZONES ARE DIFFERENT 
 			}
-			if(shareWith == NULL) {
+			if(shareFrom == NULL) {
 				//no information for share zones, assume var is passive for zones without data
 				for(int z = 0; z < zoneDetails.size(); z++) {
 					if(!(z < nZones)) {
@@ -241,12 +282,28 @@ namespace tec {
 				for(int z = 0; z < zoneDetails.size(); z++) {
 					if(!(z < nZones)) {
 						//if we have gone pass the number of zones included in new variable
-						//stop checking for data and just make variable passive in the extra zones
-						zoneDetails[z].nVars++;
-						zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
-						zoneDetails[z].zone_passiveVars.emplace_back(1); //PASSIVE
-						zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
-						zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+						//skip size checking and make variable passive or shared for extra zones
+						int32_t shareZone;
+						if((shareZone = shareFrom->at(z)) > 0 && shareZone < z+1) {
+							//data at zone is shared from an earlier zone
+							zoneDetails[z].nVars++;
+							zoneDetails[z].zone_sharedVars.emplace_back(shareZone); //SHARED
+							zoneDetails[z].zone_passiveVars.emplace_back(0); //nonpassive
+							zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+							zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+						}
+						else {
+							if(shareZone != 0) {
+								//THROW -> sharing source must come from an earlier zone)
+							}
+
+							//data is empty and not shared -> set to be passive
+							zoneDetails[z].nVars++;
+							zoneDetails[z].zone_sharedVars.emplace_back(0); //nonshared
+							zoneDetails[z].zone_passiveVars.emplace_back(1); //PASSIVE
+							zoneDetails[z].zone_varLoc.emplace_back(1); //located at node
+							zoneDetails[z].zone_varDTs.emplace_back(1); //float (default) data type
+						}
 						
 					}
 					else {
@@ -268,7 +325,7 @@ namespace tec {
 						else {
 							//data is empty
 							int32_t shareZone;
-							if((shareZone = shareWith->at(z)) > 0 && shareZone < z+1) {
+							if((shareZone = shareFrom->at(z)) > 0 && shareZone < z+1) {
 								//data at zone is shared from an earlier zone
 								zoneDetails[z].nVars++;
 								zoneDetails[z].zone_sharedVars.emplace_back(shareZone); //SHARED
@@ -301,16 +358,26 @@ namespace tec {
 		}
 	}
 
-	void fileContainer::operator[](int vidx) {
-		std::cout << "variable name at " << vidx << " is " << vars[vidx].name << std::endl;
+	variable& fileContainer::operator[](int vidx) {
+		try {
+			return vars.at(vidx);
+		}
+		catch(std::out_of_range const& e) {
+			std::cout << "The variable index \"" << vidx << "\" is not within range." << std::endl;
+			std::cout << "Please specify valid index given the indices and variable names below: " << std::endl;
+			for(int v = 0; v < vars.size(); v++) {
+				std::cout << v << ": ";
+				std::cout << vars[v].name << std::endl;
+			}
+		}
+		//std::cout << "variable name at " << vidx << " is " << vars[vidx].name << std::endl;
 	}
 
-	void fileContainer::operator[](std::string vname) {
+	variable& fileContainer::operator[](std::string vname) {
 		try {
-			int vidx = var_map.at(vname);
-			std::cout << "variable name given key " << vname << " is " << vars[vidx].name << std::endl;
+			return vars.at(var_map.at(vname));
 		}
-
+		
 		catch(std::out_of_range const& e) {
 			std::cout << "The variable key \"" << vname << "\" does not correspond to the name any variable" << std::endl;
 			std::cout << "Please using one of the following names as a key or the corrsponding index number:" << std::endl;

@@ -4,9 +4,11 @@ namespace tec {
 	//--------------------------------------------------------------------------------------------
 	// TECPLOT VARIABLE
 	//--------------------------------------------------------------------------------------------
-	variable::variable() : name("V") {}
+	variable::variable() : name("V") {
+	}
 
-	variable::variable(std::string vname) : name(vname) {}
+	variable::variable(std::string vname) : name(vname) {
+	}
 	
 	variable::variable(std::string vname, std::vector<float> &&data, int zidx) : name(vname) {
 		if(zidx > 0) {
@@ -43,6 +45,7 @@ namespace tec {
 			subzoneData.emplace_back(std::move(data));
 		}
 	}
+
 	variable::variable(std::string vname, std::vector<uint8_t> &&data, int zidx) : name(vname) {
 		if(zidx > 0) {
 			add_emptyInstances(zidx);
