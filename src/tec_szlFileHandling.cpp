@@ -263,10 +263,21 @@ namespace tec {
 			throw szlReaderError("TECIO error closing file", 1);
 		}
 	}
+	
+	fileContainer szlReader::read_file() {
+		fileContainer tmp;
+		read_file(tmp);
+		return tmp;
+	}
 
 	void szlReader::read_file(std::string _fname, fileContainer &dataContainer) {
 		fname = _fname;
 		read_file(dataContainer);
+	}
+
+	fileContainer szlReader::read_file(std::string _fname) {
+		fname = _fname;
+		return read_file();
 	}
 
 	//--------------------------------------------------------------------------------------------

@@ -29,7 +29,9 @@ namespace tec {
 			szlReader& operator=(szlReader &&obj) = delete;
 
 			void read_file(fileContainer &dataContainer);
+			fileContainer read_file();
 			void read_file(std::string _fname, fileContainer &dataContainer);
+			fileContainer read_file(std::string _fname);
 	};
 
 	class szlWriter {

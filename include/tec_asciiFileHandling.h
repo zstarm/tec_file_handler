@@ -41,7 +41,9 @@ namespace tec {
 			asciiReader& operator=(const asciiReader &obj) = delete;
 			asciiReader& operator=(asciiReader &&obj) = delete;
 
+			fileContainer read_file();
 			void read_file(fileContainer &dataContainer);
+			fileContainer read_file(std::string _fname);
 			void read_file(std::string _fname, fileContainer &dataContainer);
 	};
 	
