@@ -9,10 +9,18 @@ namespace tec {
 
 		const std::string error_msg;
 		tec_error(std::string msg, int pcode, int scode);
-		const std::string& what() const noexcept;
+		//const std::string& what() const noexcept;
+		std::string what() noexcept;
 	};
 
-	struct asciiReaderError : public tec_error {
+	struct asciiFileError : public tec_error {
+		asciiFileError();
+		asciiFileError(const char* msg, int type = 0);
+		asciiFileError(std::string msg, int type = 0);
+
+	};
+
+	struct asciiReaderError : public asciiFileError {
 
 		asciiReaderError();
 		asciiReaderError(const char* msg, int type = 0);
@@ -20,14 +28,20 @@ namespace tec {
 	};
 
 	//struct asciiWriterError {};
+	
+	struct szlFileError : public tec_error {
+		szlFileError();
+		szlFileError(const char* msg, int type = 0);
+		szlFileError(std::string msg, int type = 0);
+	}
 
-	struct szlReaderError : public tec_error {
+	struct szlReaderError : public szlFileError {
 		szlReaderError();
 		szlReaderError(const char* msg, int type = 0);
 		szlReaderError(std::string msg, int type = 0);
 	};
 
-	struct szlWriterError : public tec_error {
+	struct szlWriterError : public szlFileError {
 		szlWriterError();
 		szlWriterError(const char* msg, int type = 0);
 		szlWriterError(std::string msg, int type = 0);
@@ -39,5 +53,22 @@ namespace tec {
 		containerError(std::string msg, int type = 0);
 	};
 
+	struct variableError : public containerError {
+		containerError();
+		containerError(const char* msg, int type = 0);
+		containerError(std::string msg, int type = 0);
+	};
+	
+	struct zoneDataError : public containerError {
+		containerError();
+		containerError(const char* msg, int type = 0);
+		containerError(std::string msg, int type = 0);
+	};
+	
+	struct zoneInfoError : public containerError {
+		containerError();
+		containerError(const char* msg, int type = 0);
+		containerError(std::string msg, int type = 0);
+	};
 }
 #endif 
