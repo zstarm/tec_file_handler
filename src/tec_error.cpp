@@ -7,7 +7,7 @@ namespace tec {
 	}
 	*/
 
-	std::string tec_error::what() {
+	std::string tec_error::what() const noexcept {
 		std::string out = error_msg + " (code = " + std::to_string(code+secondary_code) + ")";
 		return out;
 	}
@@ -47,7 +47,7 @@ namespace tec {
 	szlReaderError::szlReaderError(std::string msg, int type) : szlFileError(msg,10+type) {}
 
 	
-	szlWriterError::szlWriterError() : tec_error("SZL file writing error", 20) {}
+	szlWriterError::szlWriterError() : szlFileError("SZL file writing error", 20) {}
 
 	szlWriterError::szlWriterError(const char* msg, int type) : szlFileError(msg, 20+type) {}
 
