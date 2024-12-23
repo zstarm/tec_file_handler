@@ -70,5 +70,16 @@ namespace tec {
 
 	variableError::variableError(std::string msg, int type) : containerError(msg, 10+type) {}
 
+	zoneDataError::zoneDataError() : containerError("tec::zoneData error", 20) {}
+	
+	zoneDataError::zoneDataError(const char* msg, int type) : containerError(msg, 20+type) {}
+
+	zoneDataError::zoneDataError(std::string msg, int type) : containerError(msg, 20+type) {}
+
+	zoneInfoError::zoneInfoError() : containerError("tec::zoneInfomation error", 30) {}
+	
+	zoneInfoError::zoneInfoError(const char* msg, int type) : containerError(msg, 30+type) {}
+
+	zoneInfoError::zoneInfoError(std::string msg, int type) : containerError(msg, 30+type) {}
 
 }

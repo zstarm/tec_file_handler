@@ -58,5 +58,17 @@ namespace tec {
 		containerError(const char* msg, int type = 0);
 		containerError(std::string msg, int type = 0);
 	};
+	
+	struct zoneDataError : public containerError {
+		containerError();
+		containerError(const char* msg, int type = 0);
+		containerError(std::string msg, int type = 0);
+	};
+	
+	struct zoneInfoError : public containerError {
+		containerError();
+		containerError(const char* msg, int type = 0);
+		containerError(std::string msg, int type = 0);
+	};
 }
 #endif 
