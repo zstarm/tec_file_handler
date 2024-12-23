@@ -731,6 +731,12 @@ namespace tec {
 		}
 	}
 
+	fileContainer asciiReader::read_file() {
+		fileContainer tmp;
+		read_file(tmp);
+		return tmp;
+	}
+	
 	void asciiReader::read_file(fileContainer &dataContainer) {
 		if(!fname.empty()) {
 			in_fs = std::ifstream(fname);
@@ -827,12 +833,16 @@ namespace tec {
 		}
 	}
 
-	void asciiReader::read_file(std::string _fname, fileContainer &dataContainer) {
+	fileContainer asciiReader::read_file(std::string _fname) {
 		//change the file name can call general reader function
+		fname = _fname;
+		return read_file();
+	}
+
+	void asciiReader::read_file(std::string _fname, fileContainer &dataContainer) {
 		fname = _fname;
 		read_file(dataContainer);
 	}
-
 
 	asciiWriter::asciiWriter() {}
 
