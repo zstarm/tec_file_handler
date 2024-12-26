@@ -228,12 +228,12 @@ namespace tec {
 		*/
 	}
 
-	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool eqZones) {
+	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool, atNode, bool eqZones) {
 		auto set_passive = [&](int zidx) {
 			zoneDetails[zidx].nVars++;
 			zoneDetails[zidx].zone_sharedVars.emplace_back(0); //nonshared
 			zoneDetails[zidx].zone_passiveVars.emplace_back(1); //PASSIVE
-			zoneDetails[zidx].zone_varLoc.emplace_back(1); //located at node
+			atNode ? zoneDetails[zidx].zone_varLoc.emplace_back(1) : zoneDetails[zidx].zone_varLoc.emplace_back(0); //place var location
 			zoneDetails[zidx].zone_varDTs.emplace_back(1); //float (default) data type
 		};
 
@@ -241,7 +241,8 @@ namespace tec {
 			zoneDetails[zidx].nVars++;
 			zoneDetails[zidx].zone_sharedVars.emplace_back(shareSource); //SHARED
 			zoneDetails[zidx].zone_passiveVars.emplace_back(0); //nonpassive
-			zoneDetails[zidx].zone_varLoc.emplace_back(1); //located at node
+			atNode ? zoneDetails[zidx].zone_varLoc.emplace_back(1) : zoneDetails[zidx].zone_varLoc.emplace_back(0); //place var location
+			//zoneDetails[zidx].zone_varLoc.emplace_back(1); //located at node
 			zoneDetails[zidx].zone_varDTs.emplace_back(1); //float (default) data type
 		};
 		
@@ -249,7 +250,8 @@ namespace tec {
 			zoneDetails[zidx].nVars++;
 			zoneDetails[zidx].zone_sharedVars.emplace_back(0); //nonshared
 			zoneDetails[zidx].zone_passiveVars.emplace_back(0); //nonpassive
-			zoneDetails[zidx].zone_varLoc.emplace_back(1); //located at node
+			atNode ? zoneDetails[zidx].zone_varLoc.emplace_back(1) : zoneDetails[zidx].zone_varLoc.emplace_back(0); //place var location
+			//zoneDetails[zidx].zone_varLoc.emplace_back(1); //located at node
 			int32_t tmpVarDT = (int32_t)new_var.subzoneData[zidx].type();	
 			zoneDetails[zidx].zone_varDTs.emplace_back(tmpVarDT); //set data type
 		};
@@ -362,7 +364,7 @@ namespace tec {
 			std::cout << "variable will not be added..." << std::endl;
 		}
 	}
-
+	
 	variable& fileContainer::operator[](int vidx) {
 		try {
 			return vars.at(vidx);

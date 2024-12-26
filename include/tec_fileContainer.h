@@ -63,8 +63,7 @@ namespace tec {
 			std::string get_fileType();
 			zoneInformation& get_zone(int zidx);
 
-			void add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool eqZones = true);
-			//void add_cellVariableToZone(variable new_var, int zidx, bool shareable = false);
+			void add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool atNode = true, bool eqZones = true);
 
 			variable& operator[](int vidx);
 			variable& operator[](std::string vname);
