@@ -283,9 +283,13 @@ namespace tec {
 							int size = new_var.subzoneData[z].get_array_size();
 							if(size) {
 								//if data is not empty, compare sizes
-								if(size != zoneDetails[z].get_size()) {
+								if(atNode && (size != zoneDetails[z].get_size())) {
 									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
-											"array size for zone " + std::to_string(z+1), 1);
+											" array size for zone " + std::to_string(z+1), 1);
+								}
+								else if(!atNode && (size != zoneDetails[z].get_size(false))) {
+									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
+											" array size for zone " + std::to_string(z+1), 1);
 								}
 								//sizes are equivalent, add info to zoneDetails
 								set_active(z);
@@ -323,9 +327,13 @@ namespace tec {
 							int size = new_var.subzoneData[z].get_array_size();
 							if(size) {
 								//if data is not empty, compare sizes
-								if(size != zoneDetails[z].get_size()) {
+								if(atNode && (size != zoneDetails[z].get_size())) {
 									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
-											"array size for zone " + std::to_string(z+1), 1);
+											" array size for zone " + std::to_string(z+1), 1);
+								}
+								else if(!atNode && (size != zoneDetails[z].get_size(false))) {
+									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
+											" array size for zone " + std::to_string(z+1), 1);
 								}
 								//sizes are equivalent, add info to zoneDetails
 								set_active(z);
