@@ -228,7 +228,7 @@ namespace tec {
 		*/
 	}
 
-	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool, atNode, bool eqZones) {
+	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool atNode, bool eqZones) {
 		auto set_passive = [&](int zidx) {
 			zoneDetails[zidx].nVars++;
 			zoneDetails[zidx].zone_sharedVars.emplace_back(0); //nonshared
