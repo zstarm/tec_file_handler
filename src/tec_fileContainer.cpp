@@ -228,7 +228,7 @@ namespace tec {
 		*/
 	}
 
-	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool atNode, bool eqZones) {
+	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool atNode, bool append) {
 		auto set_passive = [&](int zidx) {
 			zoneDetails[zidx].nVars++;
 			zoneDetails[zidx].zone_sharedVars.emplace_back(0); //nonshared
@@ -258,23 +258,43 @@ namespace tec {
 
 		try {
 			if(var_map.find(new_var.name) == var_map.end()) {
-				//variable is a new to the dataset
+				//variable doesn't already exist, proceed to adding it
 				int nZones = new_var.subzoneData.size();
-				if(nZones != zoneDetails.size()) {
-					if(eqZones) {
-						throw containerError("expected added variable \"" + new_var.get_name() + 
-								"\" (with " + std::to_string(new_var.subzoneData.size()) + " zones) to have the equal "
-								"number of subzone in container (" + std::to_string(zoneDetails.size()) + ")", 1);
-					}
-					std::cout << "WARNING: number of subzones in the added variable \"" + new_var.get_name() + "\" does not match"
-						"the current number of subzones in the container.\nAny additional zones in the added variable will be ignored, " 
-						"and the added variable will be made passive or shared (based on provided share info) for any missing zones" << std::endl;
+				if(nZones != zoneDetails.size() && !append) {
+					/*
+					throw containerError("expected added variable \"" + new_var.get_name() + 
+							"\" (with " + std::to_string(new_var.subzoneData.size()) + " zones) to have the equal "
+							"number of subzone in container (" + std::to_string(zoneDetails.size()) + ")", 1);
+					*/
+					std::cout << "WARNING: append mode is turned off but number of zones in added variable \"" << new_var.get_name() << "\"";
+					std::cout << " does not match current number of subzones in the container." << std::endl;
+					std::cout << " This means that zones in \"" << new_var.get_name() << "\" exceeding the current number of subzones";
+					std::cout << " will be ignored, or \"" << new_var.get_name() << "\" will be passive (unless given sharing info) if";
+					std::cout << " zones are missing" << std::endl;
 				}
+				
+				if(append) {
+					int finalNZones = nZones + zoneDetails.size();
+					zoneDetails.reserve(finalNZones); //reserve space for new amount of zones after appending
+					for(int z = 0; z < (nZones + zoneDetails.size()); z++) {
+						if(!(z < zoneDetails.size())) {
+							//set new variable passive for existing zones when in append mode
+							set_passive(z);
+						}
+						else {
+							zoneDetails.emplace_back(vars.size());
+							//make previous variables passive in the new zones
+							for(int v = 0; v < vars.size(); v++) {
+								zoneDetails[z].set_passiveVar(v, true, 0);
+							}
+						}
+					}
+				}	
 				if(shareFrom == NULL) {
 					//no information for share zones, assume var is passive for zones without data
 					for(int z = 0; z < zoneDetails.size(); z++) {
-						if(!(z < nZones)) {
-							//if we have gone pass the number of zones included in new variable
+						if(z >= nZones && !append) {
+							//when not in append mode and we have gone pass the number of zones included in new variable
 							//stop checking for data and just make variable passive in the extra zones
 							set_passive(z);
 						}
@@ -303,8 +323,8 @@ namespace tec {
 				}
 				else {
 					for(int z = 0; z < zoneDetails.size(); z++) {
-						if(!(z < nZones)) {
-							//if we have gone pass the number of zones included in new variable
+						if(z >= nZones && !append) {
+							//when not in append mode and we have gone pass the number of zones included in new variable
 							//skip size checking and make variable passive or shared for extra zones
 							int32_t shareZone;
 							if((shareZone = shareFrom->at(z)) > 0 && shareZone < z+1) {
@@ -362,6 +382,7 @@ namespace tec {
 				vars.emplace_back(std::move(new_var));
 				var_map[new_var.get_name()] = vars.size()-1;
 			}
+			
 			else {
 				throw containerError("the variable \"" + new_var.get_name() + "\" already exists in this container!", 1);
 			}
