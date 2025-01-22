@@ -228,7 +228,7 @@ namespace tec {
 		*/
 	}
 
-	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, bool atNode, bool append) {
+	void fileContainer::add_variable(variable &&new_var, std::vector<int32_t> *shareFrom, int startZone, bool atNode) {
 		auto set_passive = [&](int zidx) {
 			zoneDetails[zidx].nVars++;
 			zoneDetails[zidx].zone_sharedVars.emplace_back(0); //nonshared
@@ -260,41 +260,119 @@ namespace tec {
 			if(var_map.find(new_var.name) == var_map.end()) {
 				//variable doesn't already exist, proceed to adding it
 				int nZones = new_var.subzoneData.size();
-				if(nZones != zoneDetails.size() && !append) {
-					/*
-					throw containerError("expected added variable \"" + new_var.get_name() + 
-							"\" (with " + std::to_string(new_var.subzoneData.size()) + " zones) to have the equal "
-							"number of subzone in container (" + std::to_string(zoneDetails.size()) + ")", 1);
-					*/
-					std::cout << "WARNING: append mode is turned off but number of zones in added variable \"" << new_var.get_name() << "\"";
-					std::cout << " does not match current number of subzones in the container." << std::endl;
-					std::cout << " This means that zones in \"" << new_var.get_name() << "\" exceeding the current number of subzones";
-					std::cout << " will be ignored, or \"" << new_var.get_name() << "\" will be passive (unless given sharing info) if";
-					std::cout << " zones are missing" << std::endl;
-				}
 				
-				if(append) {
-					int finalNZones = nZones + zoneDetails.size();
-					zoneDetails.reserve(finalNZones); //reserve space for new amount of zones after appending
-					for(int z = 0; z < (nZones + zoneDetails.size()); z++) {
-						if(!(z < zoneDetails.size())) {
-							//set new variable passive for existing zones when in append mode
-							set_passive(z);
+				if(startZone < 0 ) {
+					throw containerError("start zone index cannot be negative", 1);
+				}
+				if((nZones + startZone) > zoneDetails.size()) {
+					/*
+					throw containerError("the added variable \"" + new_var.get_name() + "\" " + 
+							" (with " + std::to_string(new_var.subzoneData.size()) + " zones) exceeds the current number of zones in the container "
+							"(" + std::to_string(zoneDetails.size()) + ") when adding data starting at zone #" + std::to_string(startZone), 1);
+					*/
+					std::cout << "WARNING: number of subzones in the added variable \"" + new_var.get_name() + "\" exceeds ";
+					std::cout << "the current number of subzones in the container (when starting at zone index " << startZone+1 << ").";
+					std::cout << "\nAdditional zones in the added variable will be ignored" << std::endl; 
+				}
+				else if((nZones + startZone) < zoneDetails.size()) {
+					std::cout << "WARNING: number of subzones in the added variable \"" + new_var.get_name() + "\" is less than ";
+					std::cout << "the current number of subzones in the container (when starting at zone index " << startZone+1 << ").";
+					std::cout << "\nAdded variable will be passive in missing zones (unless share zone index is provided)" << std::endl; 
+				}
+
+				for(int z = 0; z < zoneDetails.size(); z++) {
+					if((z < startZone)) {
+						//current zone is less than specified start index
+						//new variable should be passive at these zones
+						set_passive(z);
+
+						//must insert some empty zones to new variable
+						//when not starting at zone index 0 (only do this once)
+						if(z == 0) {
+							//temporary vector of empty zone data to insert/pad to
+							//beginning of new variable's subzoneData
+							std::vector<tec::zoneData> tmp(startZone);
+							new_var.subzoneData.insert(new_var.subzoneData.begin(), tmp.begin(), tmp.end());
+						}
+					}
+					else if(z >= (nZones+startZone)) {
+						//current zone is above the number of zones stored in new variable
+						//check sharing info, and make either shared or passive
+						if(shareFrom != NULL) {
+							int32_t shareZone = shareFrom->at(z-startZone);
+							if((shareZone > 0) && shareZone < z+1) {
+								//sharing zone is specified and is a valid index (i.e. comes from earlier zone)
+								set_shared(z, shareZone);
+							}
+							else if(!shareZone) {
+								//sharingZone == 0 -> do not share and set passive	
+								set_passive(z);	
+							}
+							else {
+								//sharing zone is invalid (i.e. negative or was given as current or future zone)
+								throw containerError("sharing zone (" + std::to_string(shareZone) +  ") for added variable"
+										"\"" + new_var.get_name() + "\" at current zone (" + std::to_string(z) + 
+										"must come from an earlier (non-negative) zone index", 1);
+							}
 						}
 						else {
-							zoneDetails.emplace_back(vars.size());
-							//make previous variables passive in the new zones
-							for(int v = 0; v < vars.size(); v++) {
-								zoneDetails[z].set_passiveVar(v, true, 0);
+							//sharing info not provided -> make the rest of the zones passive
+							set_passive(z);
+						}
+					}
+
+					else {
+						//new variable has zones to add
+						//start checking ofr size compatability
+						int size = new_var.subzoneData[z-startZone].get_array_size();
+						if(size) {
+							//data is present, compare array sizing
+							if(atNode && (size != zoneDetails[z].get_size())) {
+								throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
+										" array size for zone " + std::to_string(z+1), 1);
+							}
+							else if(!atNode && (size != zoneDetails[z].get_size(false))) {
+								throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
+										" array size for zone " + std::to_string(z+1), 1);
+							}
+
+							//size compatability is consistent (based on value location), add info to zoneDetails
+							set_active(z);
+						}
+
+						else {
+							//no data is present, check for sharing
+							if(shareFrom != NULL) {
+								int32_t shareZone = shareFrom->at(z-startZone);
+								if((shareZone > 0) && shareZone < z+1) {
+									//sharing zone is specified and is a valid index (i.e. comes from earlier zone)
+									set_shared(z, shareZone);
+								}
+								else if(!shareZone) {
+									//sharingZone == 0 -> do not share and set passive	
+									set_passive(z);	
+								}
+								else {
+									//sharing zone is invalid (i.e. negative or was given as current or future zone)
+									throw containerError("sharing zone (" + std::to_string(shareZone) +  ") for added variable"
+											"\"" + new_var.get_name() + "\" at current zone (" + std::to_string(z) + 
+											"must come from an earlier (non-negative) zone index", 1);
+								}
+							}
+							else {
+								//no data present, and no sharing info provided
+								//make new variable passive
+								set_passive(z);
 							}
 						}
 					}
-				}	
+				}
+				/*
 				if(shareFrom == NULL) {
 					//no information for share zones, assume var is passive for zones without data
 					for(int z = 0; z < zoneDetails.size(); z++) {
-						if(z >= nZones && !append) {
-							//when not in append mode and we have gone pass the number of zones included in new variable
+						if((z < startZone) || z >= nZones) {
+							//if we have gone pass the number of zones included in new variable
 							//stop checking for data and just make variable passive in the extra zones
 							set_passive(z);
 						}
@@ -377,6 +455,7 @@ namespace tec {
 						}
 					}
 				}
+				*/
 				//after checking compatability and updating zone information,
 				//insert instance of tec::variable into vector and update var index mapping
 				vars.emplace_back(std::move(new_var));
