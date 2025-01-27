@@ -45,6 +45,7 @@ namespace tec {
 
 		public:
 			fileContainer();
+			
 			fileContainer(const fileContainer &obj) = default;
 			fileContainer(fileContainer &&obj) = default;
 			~fileContainer();
@@ -67,6 +68,9 @@ namespace tec {
 
 			variable& operator[](int vidx);
 			variable& operator[](std::string vname);
+
+			//fileContainer& operator=(fileContainer &&obj) noexcept;
+			//fileContainer& operator=(const fileContainer &obj) noexcept;
 	};
 
 }

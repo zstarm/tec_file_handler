@@ -265,11 +265,6 @@ namespace tec {
 					throw containerError("start zone index cannot be negative", 1);
 				}
 				if((nZones + startZone) > zoneDetails.size()) {
-					/*
-					throw containerError("the added variable \"" + new_var.get_name() + "\" " + 
-							" (with " + std::to_string(new_var.subzoneData.size()) + " zones) exceeds the current number of zones in the container "
-							"(" + std::to_string(zoneDetails.size()) + ") when adding data starting at zone #" + std::to_string(startZone), 1);
-					*/
 					std::cout << "WARNING: number of subzones in the added variable \"" + new_var.get_name() + "\" exceeds ";
 					std::cout << "the current number of subzones in the container (when starting at zone index " << startZone+1 << ").";
 					std::cout << "\nAdditional zones in the added variable will be ignored" << std::endl; 
@@ -367,95 +362,7 @@ namespace tec {
 						}
 					}
 				}
-				/*
-				if(shareFrom == NULL) {
-					//no information for share zones, assume var is passive for zones without data
-					for(int z = 0; z < zoneDetails.size(); z++) {
-						if((z < startZone) || z >= nZones) {
-							//if we have gone pass the number of zones included in new variable
-							//stop checking for data and just make variable passive in the extra zones
-							set_passive(z);
-						}
-						else {
-							//checking for size compatability
-							int size = new_var.subzoneData[z].get_array_size();
-							if(size) {
-								//if data is not empty, compare sizes
-								if(atNode && (size != zoneDetails[z].get_size())) {
-									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
-											" array size for zone " + std::to_string(z+1), 1);
-								}
-								else if(!atNode && (size != zoneDetails[z].get_size(false))) {
-									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
-											" array size for zone " + std::to_string(z+1), 1);
-								}
-								//sizes are equivalent, add info to zoneDetails
-								set_active(z);
-							}
-							else {
-								//data is empty, set passive
-								set_passive(z);
-							}
-						}
-					}
-				}
-				else {
-					for(int z = 0; z < zoneDetails.size(); z++) {
-						if(z >= nZones && !append) {
-							//when not in append mode and we have gone pass the number of zones included in new variable
-							//skip size checking and make variable passive or shared for extra zones
-							int32_t shareZone;
-							if((shareZone = shareFrom->at(z)) > 0 && shareZone < z+1) {
-								//data at zone is shared from an earlier zone
-								set_shared(z, shareZone);
-							}
-							else {
-								if(shareZone != 0) {
-									throw containerError("sharing zone (" + std::to_string(shareZone) +  ") for added variable"
-											"\"" + new_var.get_name() + "\" at current zone (" + std::to_string(z) + 
-											"must come from an earlier zone", 1);
-								}
 
-								//data is empty and not shared -> set to be passive
-								set_passive(z);
-							}
-						}
-						else {
-							//checking if data is provided 
-							int size = new_var.subzoneData[z].get_array_size();
-							if(size) {
-								//if data is not empty, compare sizes
-								if(atNode && (size != zoneDetails[z].get_size())) {
-									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
-											" array size for zone " + std::to_string(z+1), 1);
-								}
-								else if(!atNode && (size != zoneDetails[z].get_size(false))) {
-									throw containerError("added variable \"" + new_var.get_name() + "\" has incompatible data"
-											" array size for zone " + std::to_string(z+1), 1);
-								}
-								//sizes are equivalent, add info to zoneDetails
-								set_active(z);
-							}
-							else {
-								//data is empty
-								int32_t shareZone;
-								if((shareZone = shareFrom->at(z)) > 0 && shareZone < z+1) {
-									//data at zone is shared from an earlier zone
-									set_shared(z, shareZone);
-								}
-								else {
-									if(shareZone != 0) {
-										throw containerError("sharing zone (" + std::to_string(shareZone) +  ") for added variable"
-											"\"" + new_var.get_name() + "\" at current zone (" + std::to_string(z) + 
-											"must come from an earlier zone", 1);
-									}
-									set_passive(z);
-								}
-							}
-						}
-					}
-				}
-				*/
 				//after checking compatability and updating zone information,
 				//insert instance of tec::variable into vector and update var index mapping
 				vars.emplace_back(std::move(new_var));
@@ -501,5 +408,33 @@ namespace tec {
 			}
 		}
 	}
+
+	/*
+	fileContainer& fileContainer::operator=(fileContainer &&obj) noexcept {
+		if(this != obj) {
+
+			title = std::move(obj.title);
+			fType = std::move(obj.fType);
+
+			vars = std::move(obj.vars);
+			zoneDetails = std::move(obj.zoneDetails);
+			var_map = std::move(obj.var_map);
+
+		}
+
+		return *this;
+	}
+	
+	fileContainer& fileContainer::operator=(const fileContainer &obj) noexcept {
+		title = obj.title;
+		fType = obj.fType;
+
+		vars = obj.vars;
+		zoneDetails = obj.zoneDetails;
+		var_map = obj.var_map;
+		
+		return *this;
+	}
+	*/
 
 }
