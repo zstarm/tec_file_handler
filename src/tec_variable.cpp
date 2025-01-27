@@ -109,7 +109,7 @@ namespace tec {
 		name = vname;
 	}
 
-	std::string& variable::get_name() {
+	std::string variable::get_name() {
 		return name;
 	}
 

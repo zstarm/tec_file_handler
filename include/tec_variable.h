@@ -25,6 +25,8 @@ namespace tec {
 		void add_emptyInstances(int numInstances);
 		void resize_zone(int zone, int _size, dataTypeFlag T = dataTypeFlag::singlePrecision);
 		
+		//void modify_name(std::string vname);
+		
 		public:
 			variable();
 			variable(std::string vname);
@@ -41,8 +43,8 @@ namespace tec {
 			variable& operator=(const variable &obj) = default;
 			variable& operator=(variable &&obj) = default;
 
+			std::string get_name();
 			void modify_name(std::string vname);
-			std::string& get_name();
 
 			void add_zoneData(int zidx, std::vector<float> &&data);
 			void add_zoneData(int zidx, std::vector<double> &&data);
